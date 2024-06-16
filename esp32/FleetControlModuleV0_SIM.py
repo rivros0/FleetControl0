@@ -1,6 +1,7 @@
 import time
 import requests
 import random
+from datetime import datetime
 
 # Configurazione del server
 server_url = "http://localhost:5000"  # Modifica con l'URL del tuo server se necessario
@@ -18,10 +19,12 @@ def generate_random_coordinates():
 # Funzione per inviare la posizione attuale del veicolo al server
 def send_location():
     latitude, longitude = generate_random_coordinates()
+    timestamp = datetime.now().isoformat()
     data = {
         'vehicle_id': vehicle_id,
         'latitude': latitude,
-        'longitude': longitude
+        'longitude': longitude,
+        'timestamp': timestamp
     }
     response = requests.post(f"{server_url}/api/update_location", data=data)
     if response.status_code == 200:
@@ -43,20 +46,9 @@ def generate_random_error():
 # Funzione per inviare un errore del veicolo al server
 def send_error():
     error_code, error_message = generate_random_error()
+    timestamp = datetime.now().isoformat()
     data = {
         'vehicle_id': vehicle_id,
         'error_code': error_code,
-        'error_message': error_message
-    }
-    response = requests.post(f"{server_url}/api/report_error", data=data)
-    if response.status_code == 200:
-        print(f"Errore inviato: {error_code} - {error_message}")
-    else:
-        print("Errore nell'invio dell'errore")
-
-# Simulazione continua
-while True:
-    send_location()
-    if random.random() < 0.1:  # 10% di probabilità di inviare un errore
-        send_error()
-    time.sleep(5)  # Attendi 5 secondi prima di inviare la prossima posizione
+        'error_message': error_message,
+        't
