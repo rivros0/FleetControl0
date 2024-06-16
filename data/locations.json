@@ -352,5 +352,317 @@
         "latitude": 41.923090858860824,
         "longitude": 12.512574410223053,
         "timestamp": "2024-06-16T21:48:33.596526"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.44316662383353,
+        "longitude": 12.835665320317831,
+        "timestamp": "2024-06-16 21:50:14"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.92713629343021,
+        "longitude": 12.306603792761088,
+        "timestamp": "2024-06-16 21:50:19"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.16395112119698,
+        "longitude": 12.435188580279824,
+        "timestamp": "2024-06-16 21:50:24"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.31021327017222,
+        "longitude": 12.276856184712127,
+        "timestamp": "2024-06-16 21:50:29"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.40738248117604,
+        "longitude": 12.49184812714029,
+        "timestamp": "2024-06-16 21:50:34"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.57226590436779,
+        "longitude": 12.906004505677512,
+        "timestamp": "2024-06-16 21:50:39"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.5392851272187,
+        "longitude": 12.086600026627535,
+        "timestamp": "2024-06-16 21:50:44"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.21168489379597,
+        "longitude": 12.267274679057131,
+        "timestamp": "2024-06-16 21:50:49"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.71924538803978,
+        "longitude": 12.010287545193842,
+        "timestamp": "2024-06-16 21:50:54"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.82878102855956,
+        "longitude": 12.073796214416861,
+        "timestamp": "2024-06-16 21:50:59"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.75155896049189,
+        "longitude": 12.43871652900297,
+        "timestamp": "2024-06-16 21:51:04"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.87169624657306,
+        "longitude": 12.660632430725855,
+        "timestamp": "2024-06-16 21:51:09"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.701604113727036,
+        "longitude": 12.225336785422114,
+        "timestamp": "2024-06-16 21:51:14"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.80159895714448,
+        "longitude": 12.325509723201247,
+        "timestamp": "2024-06-16 21:51:19"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.866715961851824,
+        "longitude": 12.723185124689303,
+        "timestamp": "2024-06-16 21:51:24"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.93602219596469,
+        "longitude": 12.692645394446545,
+        "timestamp": "2024-06-16 21:51:29"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.28581676440099,
+        "longitude": 12.308259114893222,
+        "timestamp": "2024-06-16 21:51:34"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.8769086990279,
+        "longitude": 12.794182434430045,
+        "timestamp": "2024-06-16 21:51:39"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.65065956404483,
+        "longitude": 12.428600043440023,
+        "timestamp": "2024-06-16 21:51:44"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.0990906571334,
+        "longitude": 12.5362162457486,
+        "timestamp": "2024-06-16 21:51:49"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.83833812548235,
+        "longitude": 12.509579254679503,
+        "timestamp": "2024-06-16 21:51:54"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.316261184215925,
+        "longitude": 12.27464588088291,
+        "timestamp": "2024-06-16 21:51:59"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.72654319114662,
+        "longitude": 12.18000537669304,
+        "timestamp": "2024-06-16 21:52:04"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.63523602274123,
+        "longitude": 12.986086863038546,
+        "timestamp": "2024-06-16 21:52:09"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.91135443844688,
+        "longitude": 12.171528330017601,
+        "timestamp": "2024-06-16 21:52:14"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.558054981693864,
+        "longitude": 12.354358782808186,
+        "timestamp": "2024-06-16 21:52:19"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.80789576561544,
+        "longitude": 12.37268062627963,
+        "timestamp": "2024-06-16 21:52:25"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.65356853061887,
+        "longitude": 12.72380543952329,
+        "timestamp": "2024-06-16 21:52:30"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.12858877991763,
+        "longitude": 12.000553582764656,
+        "timestamp": "2024-06-16 21:52:35"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.10270458099373,
+        "longitude": 12.123707142270366,
+        "timestamp": "2024-06-16 21:52:40"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.63774932549052,
+        "longitude": 12.582163143584543,
+        "timestamp": "2024-06-16 21:52:45"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.19541276774349,
+        "longitude": 12.80195288140653,
+        "timestamp": "2024-06-16 21:52:50"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.64305455665392,
+        "longitude": 12.42166920098294,
+        "timestamp": "2024-06-16 21:52:55"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.85366409200965,
+        "longitude": 12.824446998116894,
+        "timestamp": "2024-06-16 21:53:00"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.58888101725496,
+        "longitude": 12.68137909736957,
+        "timestamp": "2024-06-16 21:53:05"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.21810537062694,
+        "longitude": 12.150840802227409,
+        "timestamp": "2024-06-16 21:53:10"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.02237199974508,
+        "longitude": 12.17996012755282,
+        "timestamp": "2024-06-16 21:53:15"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.13271259167639,
+        "longitude": 12.63145103230412,
+        "timestamp": "2024-06-16 21:53:20"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.80242789716431,
+        "longitude": 12.105718174940966,
+        "timestamp": "2024-06-16 21:53:25"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.208655482674345,
+        "longitude": 12.994498460044463,
+        "timestamp": "2024-06-16 21:53:30"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.748172291977205,
+        "longitude": 12.314794014954137,
+        "timestamp": "2024-06-16 21:53:35"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.14703458071537,
+        "longitude": 12.142801179554088,
+        "timestamp": "2024-06-16 21:53:40"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.16133207794168,
+        "longitude": 12.947684553104821,
+        "timestamp": "2024-06-16 21:53:45"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.87747057217716,
+        "longitude": 12.361825574166314,
+        "timestamp": "2024-06-16 21:53:50"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.14607924288853,
+        "longitude": 12.676112814963378,
+        "timestamp": "2024-06-16 21:53:55"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.4120567847761,
+        "longitude": 12.400772557526519,
+        "timestamp": "2024-06-16 21:54:00"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.36826564481618,
+        "longitude": 12.200380090831914,
+        "timestamp": "2024-06-16 21:54:05"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.9533310165262,
+        "longitude": 12.618813604296498,
+        "timestamp": "2024-06-16 21:54:10"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.33843035065458,
+        "longitude": 12.44382478781464,
+        "timestamp": "2024-06-16 21:54:15"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.77040971877115,
+        "longitude": 12.539820447729536,
+        "timestamp": "2024-06-16 21:54:20"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.59649734759445,
+        "longitude": 12.30807693816459,
+        "timestamp": "2024-06-16 21:54:25"
+    },
+    {
+        "vehicle_id": "VEHICLE001",
+        "latitude": 41.445185461891384,
+        "longitude": 12.903581813717903,
+        "timestamp": "2024-06-16 21:54:30"
     }
 ]
