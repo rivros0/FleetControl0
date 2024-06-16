@@ -1,32 +1,43 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Fleet Tracking</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle History</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
-        #map { height: 100vh; }
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
+    <h1>Vehicle History</h1>
     <div id="map"></div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        var map = L.map('map').setView([51.505, -0.09], 13);
+        var map = L.map('map').setView([41.9028, 12.4964], 6);
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19
+            attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        async function fetchCurrentLocations() {
-            const response = await fetch('/api/current_locations');
-            const data = await response.json();
-            data.forEach(vehicle => {
-                var marker = L.marker([vehicle.latitude, vehicle.longitude]).addTo(map)
-                    .bindPopup(`<b>Vehicle ID:</b> ${vehicle.vehicle_id}<br><b>Last Seen:</b> ${vehicle.last_seen}<br><a href="vehicle_history.html?vehicle_id=${vehicle.vehicle_id}">View History</a><br><a href="vehicle_errors.html?vehicle_id=${vehicle.vehicle_id}">View Errors</a>`);
-            });
-        }
+        var vehicle_id = "{{ vehicle_id }}";
 
-        fetchCurrentLocations();
+        fetch(`/api/vehicle_history/${vehicle_id}`)
+            .then(response => response.json())
+            .then(data => {
+                var latlngs = data.map(point => [point.latitude, point.longitude]);
+
+                var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
+                map.fitBounds(polyline.getBounds());
+
+                data.forEach(point => {
+                    L.marker([point.latitude, point.longitude]).addTo(map)
+                        .bindPopup(`<b>${point.timestamp}</b>`);
+                });
+            });
     </script>
 </body>
 </html>
