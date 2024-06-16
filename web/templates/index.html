@@ -4,37 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fleet Control</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <style>
-        #map {
-            height: 100vh;
-            width: 100%;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Fleet Control</h1>
-    <div id="map"></div>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <h1>Fleet Control Dashboard</h1>
+    <div id="map" style="height: 500px;"></div>
+    <h2>Vehicle List</h2>
+    <ul>
+        {% for vehicle_id in vehicle_ids %}
+            <li><a href="{{ url_for('vehicle_history', vehicle_id=vehicle_id) }}">{{ vehicle_id }}</a></li>
+        {% endfor %}
+    </ul>
     <script>
-        var map = L.map('map').setView([41.9028, 12.4964], 6);
+        function initMap() {
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 6,
+                center: {lat: 41.9028, lng: 12.4964}
+            });
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        fetch('/api/current_locations')
-            .then(response => response.json())
-            .then(data => {
-                data.forEach(vehicle => {
-                    var marker = L.marker([vehicle.latitude, vehicle.longitude]).addTo(map)
-                        .bindPopup(`<b>${vehicle.vehicle_id}</b><br>Last seen: ${vehicle.last_seen}`);
-                    
-                    marker.on('click', function() {
-                        window.location.href = `/vehicle_history/${vehicle.vehicle_id}`;
+            fetch('/api/current_locations')
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(location => {
+                        var marker = new google.maps.Marker({
+                            position: {lat: location.latitude, lng: location.longitude},
+                            map: map,
+                            title: location.vehicle_id
+                        });
                     });
                 });
-            });
+        }
     </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
 </body>
 </html>

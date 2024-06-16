@@ -1,0 +1,20 @@
+[
+    {
+        "vehicle_id": "VEH001",
+        "error_code": "P0300",
+        "error_message": "Random/Multiple Cylinder Misfire Detected",
+        "timestamp": "2024-06-16T21:41:16.806230"
+    },
+    {
+        "vehicle_id": "VEH001",
+        "error_code": "P0133",
+        "error_message": "Oxygen Sensor Circuit Slow Response",
+        "timestamp": "2024-06-16T21:42:01.247759"
+    },
+    {
+        "vehicle_id": "VEH001",
+        "error_code": "P0133",
+        "error_message": "Oxygen Sensor Circuit Slow Response",
+        "timestamp": "2024-06-16T21:43:42.204601"
+    }
+]

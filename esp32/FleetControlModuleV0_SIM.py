@@ -51,4 +51,17 @@ def send_error():
         'vehicle_id': vehicle_id,
         'error_code': error_code,
         'error_message': error_message,
-        't
+        'timestamp': timestamp
+    }
+    response = requests.post(f"{server_url}/api/report_error", data=data)
+    if response.status_code == 200:
+        print(f"Errore inviato: {error_code} - {error_message}")
+    else:
+        print("Errore nell'invio dell'errore")
+
+# Simulazione continua
+while True:
+    send_location()
+    if random.random() < 0.1:  # 10% di probabilità di inviare un errore
+        send_error()
+    time.sleep(5)  # Attendi 5 secondi prima di inviare la prossima posizione

@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import json
 import os
 
@@ -20,6 +20,18 @@ def read_data(file_path):
 def write_data(file_path, data):
     with open(file_path, 'w') as f:
         json.dump(data, f, indent=4)
+
+@app.route('/')
+def index():
+    locations = read_data(LOCATIONS_FILE)
+    vehicle_ids = list(set([location['vehicle_id'] for location in locations]))
+    return render_template('index.html', vehicle_ids=vehicle_ids)
+
+@app.route('/vehicle_history/<vehicle_id>')
+def vehicle_history(vehicle_id):
+    locations = read_data(LOCATIONS_FILE)
+    vehicle_locations = [location for location in locations if location['vehicle_id'] == vehicle_id]
+    return render_template('vehicle_history.html', vehicle_id=vehicle_id, locations=vehicle_locations)
 
 @app.route('/api/update_location', methods=['POST'])
 def update_location():
@@ -59,4 +71,8 @@ def get_errors(vehicle_id):
 @app.route('/api/vehicle_history/<vehicle_id>', methods=['GET'])
 def get_vehicle_history(vehicle_id):
     locations = read_data(LOCATIONS_FILE)
-    vehicle_locations = [location for 
+    vehicle_locations = [location for location in locations if location['vehicle_id'] == vehicle_id]
+    return jsonify(vehicle_locations)
+
+if __name__ == "__main__":
+    app.run(debug=True)

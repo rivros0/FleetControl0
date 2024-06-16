@@ -3,41 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle History</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <style>
-        #map {
-            height: 100vh;
-            width: 100%;
-        }
-    </style>
+    <title>Vehicle History - {{ vehicle_id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Vehicle History</h1>
-    <div id="map"></div>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <h1>Vehicle History: {{ vehicle_id }}</h1>
+    <div id="map" style="height: 500px;"></div>
     <script>
-        var map = L.map('map').setView([41.9028, 12.4964], 6);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        var vehicle_id = "{{ vehicle_id }}";
-
-        fetch(`/api/vehicle_history/${vehicle_id}`)
-            .then(response => response.json())
-            .then(data => {
-                var latlngs = data.map(point => [point.latitude, point.longitude]);
-
-                var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
-                map.fitBounds(polyline.getBounds());
-
-                data.forEach(point => {
-                    L.marker([point.latitude, point.longitude]).addTo(map)
-                        .bindPopup(`<b>${point.timestamp}</b>`);
-                });
+        function initMap() {
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 6,
+                center: {lat: 41.9028, lng: 12.4964}
             });
+
+            var vehiclePath = new google.maps.Polyline({
+                path: [],
+                geodesic: true,
+                strokeColor: '#FF0000',
+                strokeOpacity: 1.0,
+                strokeWeight: 2
+            });
+
+            fetch('/api/vehicle_history/{{ vehicle_id }}')
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(location => {
+                        var position = {lat: location.latitude, lng: location.longitude};
+                        vehiclePath.getPath().push(position);
+                        new google.maps.Marker({
+                            position: position,
+                            map: map,
+                            title: location.timestamp
+                        });
+                    });
+                    vehiclePath.setMap(map);
+                });
+        }
     </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
 </body>
 </html>
