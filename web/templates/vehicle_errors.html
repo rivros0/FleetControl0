@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vehicle Errors</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        #errorList { margin: 20px; }
+        .errorItem { padding: 10px; border: 1px solid #ccc; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Vehicle Errors</h1>
+    <div id="errorList"></div>
+    <script>
+        async function fetchErrors() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const vehicleId = urlParams.get('vehicle_id');
+            const response = await fetch(`/api/get_errors/${vehicleId}`);
+            const data = await response.json();
+            
+            const errorList = document.getElementById('errorList');
+            data.forEach(error => {
+                const errorItem = document.createElement('div');
+                errorItem.className = 'errorItem';
+                errorItem.innerHTML = `<strong>Error Code:</strong> ${error.error_code}<br><strong>Message:</strong> ${error.error_message}<br><strong>Timestamp:</strong> ${error.timestamp}`;
+                errorList.appendChild(errorItem);
+            });
+        }
+
+        fetchErrors();
+    </script>
+</body>
+</html>

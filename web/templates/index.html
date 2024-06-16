@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fleet Tracking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #map { height: 100vh; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([51.505, -0.09], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        async function fetchCurrentLocations() {
+            const response = await fetch('/api/current_locations');
+            const data = await response.json();
+            data.forEach(vehicle => {
+                var marker = L.marker([vehicle.latitude, vehicle.longitude]).addTo(map)
+                    .bindPopup(`<b>Vehicle ID:</b> ${vehicle.vehicle_id}<br><b>Last Seen:</b> ${vehicle.last_seen}<br><a href="vehicle_history.html?vehicle_id=${vehicle.vehicle_id}">View History</a><br><a href="vehicle_errors.html?vehicle_id=${vehicle.vehicle_id}">View Errors</a>`);
+            });
+        }
+
+        fetchCurrentLocations();
+    </script>
+</body>
+</html>
