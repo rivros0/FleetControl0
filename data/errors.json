@@ -16,5 +16,17 @@
         "error_code": "P0133",
         "error_message": "Oxygen Sensor Circuit Slow Response",
         "timestamp": "2024-06-16T21:43:42.204601"
+    },
+    {
+        "vehicle_id": "VEH001",
+        "error_code": "P0133",
+        "error_message": "Oxygen Sensor Circuit Slow Response",
+        "timestamp": "2024-06-16T21:46:01.140165"
+    },
+    {
+        "vehicle_id": "VEH001",
+        "error_code": "P0133",
+        "error_message": "Oxygen Sensor Circuit Slow Response",
+        "timestamp": "2024-06-16T21:46:38.529375"
     }
 ]
