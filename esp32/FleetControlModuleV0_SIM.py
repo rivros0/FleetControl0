@@ -2,12 +2,12 @@ import requests
 import time
 import random
 
-server_url = 'http://127.0.0.1:5000/api/update_location'
-vehicle_id = 'VEHICLE001'
+server_url = 'http://test0000.pythonanywhere.com/api/update_location'
+vehicle_id = 'VEHICLE002'
 
 while True:
-    latitude = random.uniform(41.0, 42.0)
-    longitude = random.uniform(12.0, 13.0)
+    latitude = random.uniform(38.0, 42.0)
+    longitude = random.uniform(17.0, 18.0)
     timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
 
     data = {
@@ -19,4 +19,5 @@ while True:
 
     response = requests.post(server_url, data=data)
     print(response.text)
+    print(timestamp)
     time.sleep(5)

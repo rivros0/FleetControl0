@@ -1,78 +1,56 @@
-from flask import Flask, request, jsonify, render_template
-import json
-import os
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-DATA_DIR = './data'
-if not os.path.exists(DATA_DIR):
-    os.makedirs(DATA_DIR)
-
-LOCATIONS_FILE = os.path.join(DATA_DIR, 'locations.json')
-ERRORS_FILE = os.path.join(DATA_DIR, 'errors.json')
-
-def read_data(file_path):
-    if os.path.exists(file_path):
-        with open(file_path, 'r') as f:
-            return json.load(f)
-    return []
-
-def write_data(file_path, data):
-    with open(file_path, 'w') as f:
-        json.dump(data, f, indent=4)
-
-@app.route('/')
-def index():
-    locations = read_data(LOCATIONS_FILE)
-    vehicle_ids = list(set([location['vehicle_id'] for location in locations]))
-    return render_template('index.html', vehicle_ids=vehicle_ids)
-
-@app.route('/vehicle_history/<vehicle_id>')
-def vehicle_history(vehicle_id):
-    locations = read_data(LOCATIONS_FILE)
-    vehicle_locations = [location for location in locations if location['vehicle_id'] == vehicle_id]
-    return render_template('vehicle_history.html', vehicle_id=vehicle_id, locations=vehicle_locations)
-
+# Endpoint per aggiornare la posizione del veicolo
 @app.route('/api/update_location', methods=['POST'])
 def update_location():
     vehicle_id = request.form['vehicle_id']
-    latitude = float(request.form['latitude'])
-    longitude = float(request.form['longitude'])
-    timestamp = request.form.get('timestamp', 'unknown')
+    latitude = request.form['latitude']
+    longitude = request.form['longitude']
+    # Per ora, stampiamo semplicemente i dati ricevuti
+    print(f"Ricevuta posizione per {vehicle_id}: {latitude}, {longitude}")
+    return "Posizione aggiornata con successo", 200
 
-    locations = read_data(LOCATIONS_FILE)
-    locations.append({'vehicle_id': vehicle_id, 'latitude': latitude, 'longitude': longitude, 'timestamp': timestamp})
-    write_data(LOCATIONS_FILE, locations)
-    return "Location updated successfully", 200
-
+# Endpoint per segnalare un errore del veicolo
 @app.route('/api/report_error', methods=['POST'])
 def report_error():
     vehicle_id = request.form['vehicle_id']
     error_code = request.form['error_code']
     error_message = request.form['error_message']
-    timestamp = request.form.get('timestamp', 'unknown')
+    # Per ora, stampiamo semplicemente i dati ricevuti
+    print(f"Ricevuto errore per {vehicle_id}: {error_code} - {error_message}")
+    return "Errore segnalato con successo", 200
 
-    errors = read_data(ERRORS_FILE)
-    errors.append({'vehicle_id': vehicle_id, 'error_code': error_code, 'error_message': error_message, 'timestamp': timestamp})
-    write_data(ERRORS_FILE, errors)
-    return "Error reported successfully", 200
+# Pagina principale per visualizzare le posizioni dei veicoli
+@app.route('/')
+def index():
+    return render_template('index.html')
 
+# Endpoint per ottenere la posizione corrente dei veicoli
 @app.route('/api/current_locations', methods=['GET'])
 def get_current_locations():
-    locations = read_data(LOCATIONS_FILE)
+    # Dati simulati per ora
+    locations = [
+        {'vehicle_id': 'VEH001', 'latitude': 41.9028, 'longitude': 12.4964, 'last_seen': '2023-06-15 14:00:00'},
+        {'vehicle_id': 'VEH002', 'latitude': 45.4642, 'longitude': 9.1900, 'last_seen': '2023-06-15 14:05:00'},
+    ]
     return jsonify(locations)
 
-@app.route('/api/get_errors/<vehicle_id>', methods=['GET'])
-def get_errors(vehicle_id):
-    errors = read_data(ERRORS_FILE)
-    vehicle_errors = [error for error in errors if error['vehicle_id'] == vehicle_id]
-    return jsonify(vehicle_errors)
+# Endpoint per ottenere lo storico delle posizioni di un veicolo
+@app.route('/vehicle_history/<vehicle_id>')
+def vehicle_history(vehicle_id):
+    return render_template('vehicle_history.html', vehicle_id=vehicle_id)
 
+# Endpoint per ottenere i dati storici del veicolo
 @app.route('/api/vehicle_history/<vehicle_id>', methods=['GET'])
 def get_vehicle_history(vehicle_id):
-    locations = read_data(LOCATIONS_FILE)
-    vehicle_locations = [location for location in locations if location['vehicle_id'] == vehicle_id]
-    return jsonify(vehicle_locations)
+    # Dati simulati per ora
+    history = [
+        {'latitude': 41.9028, 'longitude': 12.4964, 'timestamp': '2023-06-15 13:00:00'},
+        {'latitude': 41.9030, 'longitude': 12.4970, 'timestamp': '2023-06-15 13:10:00'},
+    ]
+    return jsonify(history)
 
 if __name__ == "__main__":
     app.run(debug=True)
