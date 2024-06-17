@@ -4,13 +4,14 @@ app = Flask(__name__)
 
 # Memorizzare le posizioni attuali in una struttura in memoria
 current_positions = {}
+vehicle_histories = {}
 
 # Endpoint per aggiornare la posizione del veicolo
 @app.route('/api/update_location', methods=['POST'])
 def update_location():
     vehicle_id = request.form['vehicle_id']
-    latitude = request.form['latitude']
-    longitude = request.form['longitude']
+    latitude = float(request.form['latitude'])
+    longitude = float(request.form['longitude'])
     timestamp = request.form['timestamp']
     
     # Aggiornare la posizione attuale del veicolo
@@ -20,6 +21,15 @@ def update_location():
         'last_seen': timestamp
     }
     
+    # Aggiungere la posizione allo storico
+    if vehicle_id not in vehicle_histories:
+        vehicle_histories[vehicle_id] = []
+    vehicle_histories[vehicle_id].append({
+        'latitude': latitude,
+        'longitude': longitude,
+        'timestamp': timestamp
+    })
+    
     print(f"Ricevuta posizione per {vehicle_id}: {latitude}, {longitude}")
     return "Posizione aggiornata con successo", 200
 
@@ -28,12 +38,17 @@ def update_location():
 def get_current_locations():
     return jsonify([{'vehicle_id': vehicle_id, **data} for vehicle_id, data in current_positions.items()])
 
+# Endpoint per ottenere lo storico delle posizioni di un veicolo specifico
+@app.route('/api/vehicle_history/<vehicle_id>', methods=['GET'])
+def get_vehicle_history(vehicle_id):
+    return jsonify(vehicle_histories.get(vehicle_id, []))
+
 # Pagina principale per visualizzare le posizioni dei veicoli
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# Endpoint per ottenere lo storico delle posizioni di un veicolo
+# Pagina di storico delle posizioni di un veicolo
 @app.route('/vehicle_history/<vehicle_id>')
 def vehicle_history(vehicle_id):
     return render_template('vehicle_history.html', vehicle_id=vehicle_id)
