@@ -7,14 +7,39 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         #map {
-            height: 90vh;
+            height: 60vh;
             width: 100%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
         }
     </style>
 </head>
 <body>
     <h1>Fleet Control</h1>
     <div id="map"></div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID Veicolo</th>
+                <th>Latitudine</th>
+                <th>Longitudine</th>
+                <th>Ultima Posizione</th>
+            </tr>
+        </thead>
+        <tbody id="vehicle-table">
+        </tbody>
+    </table>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([41.9028, 12.4964], 6);
@@ -26,7 +51,14 @@
         fetch('/api/current_locations')
             .then(response => response.json())
             .then(data => {
+                var table = document.getElementById('vehicle-table');
                 data.forEach(vehicle => {
+                    var row = table.insertRow();
+                    row.insertCell(0).innerHTML = `<a href="/vehicle_history/${vehicle.vehicle_id}">${vehicle.vehicle_id}</a>`;
+                    row.insertCell(1).textContent = vehicle.latitude;
+                    row.insertCell(2).textContent = vehicle.longitude;
+                    row.insertCell(3).textContent = vehicle.last_seen;
+
                     var marker = L.marker([vehicle.latitude, vehicle.longitude]).addTo(map)
                         .bindPopup(`<b>${vehicle.vehicle_id}</b><br>Ultima posizione: ${vehicle.last_seen}`);
                     

@@ -7,14 +7,38 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         #map {
-            height: 90vh;
+            height: 60vh;
             width: 100%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
         }
     </style>
 </head>
 <body>
     <h1>Storico Veicolo {{ vehicle_id }}</h1>
     <div id="map"></div>
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Latitudine</th>
+                <th>Longitudine</th>
+            </tr>
+        </thead>
+        <tbody id="history-table">
+        </tbody>
+    </table>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([41.9028, 12.4964], 6);
@@ -28,12 +52,18 @@
         fetch(`/api/vehicle_history/${vehicle_id}`)
             .then(response => response.json())
             .then(data => {
+                var table = document.getElementById('history-table');
                 var latlngs = data.map(point => [point.latitude, point.longitude]);
 
                 var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
                 map.fitBounds(polyline.getBounds());
 
                 data.forEach(point => {
+                    var row = table.insertRow();
+                    row.insertCell(0).textContent = point.timestamp;
+                    row.insertCell(1).textContent = point.latitude;
+                    row.insertCell(2).textContent = point.longitude;
+
                     L.marker([point.latitude, point.longitude]).addTo(map)
                         .bindPopup(`<b>${point.timestamp}</b>`);
                 });
