@@ -146,7 +146,9 @@ def index():
 @app.route('/vehicle_history/<vehicle_id>')
 def vehicle_history(vehicle_id):
     generate_charts(vehicle_id)  # Genera i grafici all'accesso alla pagina
-    return render_template('vehicle_history.html', vehicle_id=vehicle_id)
+    vehicle_history_data = list(vehicle_histories.get(vehicle_id, []))
+    vehicle_history_data.reverse()  # Inverti l'ordine dei record storici
+    return render_template('vehicle_history.html', vehicle_id=vehicle_id, vehicle_history=vehicle_history_data)
 
 if __name__ == "__main__":
     app.run(debug=True)
