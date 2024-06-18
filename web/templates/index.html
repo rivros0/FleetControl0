@@ -51,25 +51,35 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        fetch('/api/current_locations')
-            .then(response => response.json())
-            .then(data => {
-                var table = document.getElementById('vehicle-table');
-                data.forEach(vehicle => {
-                    var row = table.insertRow();
-                    row.insertCell(0).innerHTML = `<a href="/vehicle_history/${vehicle.vehicle_id}">${vehicle.vehicle_id}</a>`;
-                    row.insertCell(1).textContent = vehicle.latitude;
-                    row.insertCell(2).textContent = vehicle.longitude;
-                    row.insertCell(3).textContent = vehicle.last_seen;
+        function refreshData() {
+            fetch('/api/current_locations')
+                .then(response => response.json())
+                .then(data => {
+                    var table = document.getElementById('vehicle-table');
+                    table.innerHTML = ''; // Clear existing rows
 
-                    var marker = L.marker([vehicle.latitude, vehicle.longitude]).addTo(map)
-                        .bindPopup(`<b>${vehicle.vehicle_id}</b><br>Ultima posizione: ${vehicle.last_seen}`);
-                    
-                    marker.on('click', function() {
-                        window.location.href = `/vehicle_history/${vehicle.vehicle_id}`;
+                    data.forEach(vehicle => {
+                        var row = table.insertRow();
+                        row.insertCell(0).innerHTML = `<a href="/vehicle_history/${vehicle.vehicle_id}">${vehicle.vehicle_id}</a>`;
+                        row.insertCell(1).textContent = vehicle.latitude;
+                        row.insertCell(2).textContent = vehicle.longitude;
+                        row.insertCell(3).textContent = vehicle.last_seen;
+
+                        var marker = L.marker([vehicle.latitude, vehicle.longitude]).addTo(map)
+                            .bindPopup(`<b>${vehicle.vehicle_id}</b><br>Ultima posizione: ${vehicle.last_seen}`);
+                        
+                        marker.on('click', function() {
+                            window.location.href = `/vehicle_history/${vehicle.vehicle_id}`;
+                        });
                     });
                 });
-            });
+        }
+
+        // Initial data load
+        refreshData();
+
+        // Refresh data every 30 seconds
+        setInterval(refreshData, 30000);
     </script>
 </body>
 </html>

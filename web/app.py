@@ -19,7 +19,7 @@ def update_location():
     temp_acqua = float(request.form.get('temp_acqua', 0.0))
     pressione_olio = float(request.form.get('pressione_olio', 0.0))
     voltaggio_batteria = float(request.form.get('voltaggio_batteria', 0.0))
-    contaore_motore = int(request.form.get('contaore_motore', 0))
+    contaore_motore = float(request.form.get('contaore_motore', 0.0))
     errori = request.form.getlist('errori')
 
     # Aggiornare la posizione attuale del veicolo
@@ -47,7 +47,7 @@ def update_location():
         'contaore_motore': contaore_motore,
         'errori': errori
     })
-    
+
     print(f"Ricevuta posizione per {vehicle_id}: {latitude}, {longitude}")
     return "Posizione aggiornata con successo", 200
 
@@ -66,45 +66,51 @@ def get_vehicle_history(vehicle_id):
 def index():
     return render_template('index.html')
 
-# Funzione per generare un grafico e restituire i dati base64
-def generate_graph(data, ylabel, title):
-    timestamps = [entry['timestamp'] for entry in data]
-    values = [entry[ylabel] for entry in data]
-
-    plt.figure(figsize=(8, 4))
-    plt.plot(timestamps, values, marker='o', color='blue')
-    plt.xlabel('Timestamp')
-    plt.ylabel(ylabel)
-    plt.title(title)
-    plt.xticks(rotation=45)
-    plt.grid(True)
-
-    # Salvataggio del grafico in formato base64
-    buffer = BytesIO()
-    plt.savefig(buffer, format='png')
-    buffer.seek(0)
-    graph_data = base64.b64encode(buffer.getvalue()).decode()
-    plt.close()
-
-    return graph_data
-
 # Pagina di storico delle posizioni di un veicolo
 @app.route('/vehicle_history/<vehicle_id>')
 def vehicle_history(vehicle_id):
-    if vehicle_id not in vehicle_histories:
-        return "Veicolo non trovato", 404
+    return render_template('vehicle_history.html', vehicle_id=vehicle_id)
 
-    data = vehicle_histories[vehicle_id]
-    temp_acqua_graph = generate_graph(data, 'temp_acqua', 'Temperatura Acqua')
-    pressione_olio_graph = generate_graph(data, 'pressione_olio', 'Pressione Olio')
-    voltaggio_batteria_graph = generate_graph(data, 'voltaggio_batteria', 'Voltaggio Batteria')
-    contaore_motore_graph = generate_graph(data, 'contaore_motore', 'Contaore Motore')
+# Funzione per generare grafici
+def generate_graphs(data):
+    timestamps = [point['timestamp'] for point in data]
+    temp_acqua = [point['temp_acqua'] for point in data]
+    pressione_olio = [point['pressione_olio'] for point in data]
+    voltaggio_batteria = [point['voltaggio_batteria'] for point in data]
+    contaore_motore = [point['contaore_motore'] for point in data]
 
-    return render_template('vehicle_history.html', vehicle_id=vehicle_id,
-                           temp_acqua_graph=temp_acqua_graph,
-                           pressione_olio_graph=pressione_olio_graph,
-                           voltaggio_batteria_graph=voltaggio_batteria_graph,
-                           contaore_motore_graph=contaore_motore_graph)
+    fig, axs = plt.subplots(4, 1, figsize=(8, 12))
+
+    axs[0].plot(timestamps, temp_acqua, marker='o', linestyle='-')
+    axs[0].set_title('Temperatura Acqua')
+    axs[0].set_ylabel('Temperatura (°C)')
+    axs[0].grid(True)
+
+    axs[1].plot(timestamps, pressione_olio, marker='o', linestyle='-')
+    axs[1].set_title('Pressione Olio')
+    axs[1].set_ylabel('Pressione (psi)')
+    axs[1].grid(True)
+
+    axs[2].plot(timestamps, voltaggio_batteria, marker='o', linestyle='-')
+    axs[2].set_title('Voltaggio Batteria')
+    axs[2].set_ylabel('Voltaggio (V)')
+    axs[2].grid(True)
+
+    axs[3].plot(timestamps, contaore_motore, marker='o', linestyle='-')
+    axs[3].set_title('Contaore Motore')
+    axs[3].set_ylabel('Contatore')
+    axs[3].grid(True)
+
+    plt.tight_layout()
+    
+    # Salvataggio del grafico in formato base64 per l'integrazione in HTML
+    img_stream = BytesIO()
+    plt.savefig(img_stream, format='png')
+    img_stream.seek(0)
+    img_base64 = base64.b64encode(img_stream.read()).decode('utf-8')
+    plt.close()
+
+    return img_base64
 
 if __name__ == "__main__":
     app.run(debug=True)

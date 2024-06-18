@@ -61,6 +61,8 @@
             .then(response => response.json())
             .then(data => {
                 var table = document.getElementById('history-table');
+                table.innerHTML = ''; // Clear existing rows
+
                 var latlngs = data.map(point => [point.latitude, point.longitude]);
 
                 var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
@@ -80,6 +82,8 @@
                     L.marker([point.latitude, point.longitude]).addTo(map)
                         .bindPopup(`<b>${point.timestamp}</b>`);
                 });
+
+                refreshCharts(data);
             });
 
         function refreshData() {
@@ -108,11 +112,66 @@
                         L.marker([point.latitude, point.longitude]).addTo(map)
                             .bindPopup(`<b>${point.timestamp}</b>`);
                     });
+
+                    refreshCharts(data);
                 });
         }
 
         // Refresh data every 30 seconds
         setInterval(refreshData, 30000);
+
+        // Function to refresh charts
+        function refreshCharts(data) {
+            var tempAcquaData = data.map(point => ({ x: point.timestamp, y: point.temp_acqua }));
+            var pressioneOlioData = data.map(point => ({ x: point.timestamp, y: point.pressione_olio }));
+            var voltaggioBatteriaData = data.map(point => ({ x: point.timestamp, y: point.voltaggio_batteria }));
+            var contaoreMotoreData = data.map(point => ({ x: point.timestamp, y: point.contaore_motore }));
+
+            updateChart('tempAcquaChart', 'Temperatura Acqua', tempAcquaData);
+            updateChart('pressioneOlioChart', 'Pressione Olio', pressioneOlioData);
+            updateChart('voltaggioBatteriaChart', 'Voltaggio Batteria', voltaggioBatteriaData);
+            updateChart('contaoreMotoreChart', 'Contaore Motore', contaoreMotoreData);
+        }
+
+        // Function to update charts
+        function updateChart(chartId, label, data) {
+            var ctx = document.getElementById(chartId).getContext('2d');
+            var chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(item => item.x),
+                    datasets: [{
+                        label: label,
+                        data: data.map(item => item.y),
+                        borderColor: 'blue',
+                        borderWidth: 1,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        xAxes: [{
+                            type: 'time',
+                            time: {
+                                unit: 'minute',
+                                tooltipFormat: 'll HH:mm'
+                            },
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 10
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    }
+                }
+            });
+        }
     </script>
     <div class="container">
         <div class="graph">
@@ -132,5 +191,21 @@
             <canvas id="contaoreMotoreChart" width="400" height="300"></canvas>
         </div>
     </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Latitudine</th>
+                <th>Longitudine</th>
+                <th>Temp. Acqua</th>
+                <th>Pressione Olio</th>
+                <th>Voltaggio Batteria</th>
+                <th>Contaore Motore</th>
+                <th>Errori</th>
+            </tr>
+        </thead>
+        <tbody id="history-table">
+        </tbody>
+    </table>
 </body>
 </html>
