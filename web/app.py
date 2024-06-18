@@ -2,12 +2,16 @@ from flask import Flask, render_template, request, jsonify
 import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
+from collections import deque
 
 app = Flask(__name__)
 
 # Memorizzare le posizioni attuali in una struttura in memoria
 current_positions = {}
 vehicle_histories = {}
+
+# Massimo numero di punti storici da mantenere per ciascun veicolo
+MAX_HISTORY_POINTS = 100
 
 # Aggiornamento della posizione del veicolo
 @app.route('/api/update_location', methods=['POST'])
@@ -36,8 +40,8 @@ def update_location():
 
     # Aggiungere la posizione allo storico
     if vehicle_id not in vehicle_histories:
-        vehicle_histories[vehicle_id] = []
-    vehicle_histories[vehicle_id].append({
+        vehicle_histories[vehicle_id] = deque(maxlen=MAX_HISTORY_POINTS)
+    vehicle_histories[vehicle_id].appendleft({
         'latitude': latitude,
         'longitude': longitude,
         'timestamp': timestamp,
@@ -57,7 +61,7 @@ def update_location():
 
 # Funzione per generare i grafici
 def generate_charts(vehicle_id):
-    data = vehicle_histories.get(vehicle_id, [])
+    data = list(vehicle_histories.get(vehicle_id, []))
 
     if not data:
         return
@@ -131,7 +135,7 @@ def get_current_locations():
 # Endpoint per ottenere lo storico delle posizioni di un veicolo specifico
 @app.route('/api/vehicle_history/<vehicle_id>', methods=['GET'])
 def get_vehicle_history(vehicle_id):
-    return jsonify(vehicle_histories.get(vehicle_id, []))
+    return jsonify(list(vehicle_histories.get(vehicle_id, [])))
 
 # Pagina principale per visualizzare le posizioni dei veicoli
 @app.route('/')

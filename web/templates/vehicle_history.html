@@ -12,22 +12,16 @@
         #map {
             height: 60vh;
             width: 100%;
-            margin-bottom: 20px;
         }
-        .container {
+        .chart-container {
+            margin-top: 20px;
             display: flex;
             flex-wrap: wrap;
-            justify-content: space-around;
+            justify-content: space-between;
         }
-        .graph {
-            flex: 0 0 45%;
+        .chart {
+            width: 48%;
             margin-bottom: 20px;
-        }
-        canvas {
-            display: block;
-            margin: 0 auto;
-            max-width: 100%;
-            height: auto;
         }
         table {
             width: 100%;
@@ -47,165 +41,58 @@
 <body>
     <h1>Storico Veicolo {{ vehicle_id }}</h1>
     <div id="map"></div>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script>
-        var map = L.map('map').setView([41.9028, 12.4964], 6);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        var vehicle_id = "{{ vehicle_id }}";
-
-        fetch(`/api/vehicle_history/${vehicle_id}`)
-            .then(response => response.json())
-            .then(data => {
-                var table = document.getElementById('history-table');
-                table.innerHTML = ''; // Clear existing rows
-
-                var latlngs = data.map(point => [point.latitude, point.longitude]);
-
-                var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
-                map.fitBounds(polyline.getBounds());
-
-                data.forEach(point => {
-                    var row = table.insertRow();
-                    row.insertCell(0).textContent = point.timestamp;
-                    row.insertCell(1).textContent = point.latitude;
-                    row.insertCell(2).textContent = point.longitude;
-                    row.insertCell(3).textContent = point.temp_acqua;
-                    row.insertCell(4).textContent = point.pressione_olio;
-                    row.insertCell(5).textContent = point.voltaggio_batteria;
-                    row.insertCell(6).textContent = point.contaore_motore;
-                    row.insertCell(7).textContent = point.errori.join(', ');
-
-                    L.marker([point.latitude, point.longitude]).addTo(map)
-                        .bindPopup(`<b>${point.timestamp}</b>`);
-                });
-
-                refreshCharts(data);
-            });
-
-        function refreshData() {
-            fetch(`/api/vehicle_history/${vehicle_id}`)
-                .then(response => response.json())
-                .then(data => {
-                    var table = document.getElementById('history-table');
-                    table.innerHTML = ''; // Clear existing rows
-
-                    var latlngs = data.map(point => [point.latitude, point.longitude]);
-
-                    var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
-                    map.fitBounds(polyline.getBounds());
-
-                    data.forEach(point => {
-                        var row = table.insertRow();
-                        row.insertCell(0).textContent = point.timestamp;
-                        row.insertCell(1).textContent = point.latitude;
-                        row.insertCell(2).textContent = point.longitude;
-                        row.insertCell(3).textContent = point.temp_acqua;
-                        row.insertCell(4).textContent = point.pressione_olio;
-                        row.insertCell(5).textContent = point.voltaggio_batteria;
-                        row.insertCell(6).textContent = point.contaore_motore;
-                        row.insertCell(7).textContent = point.errori.join(', ');
-
-                        L.marker([point.latitude, point.longitude]).addTo(map)
-                            .bindPopup(`<b>${point.timestamp}</b>`);
-                    });
-
-                    refreshCharts(data);
-                });
-        }
-
-        // Refresh data every 30 seconds
-        setInterval(refreshData, 30000);
-
-        // Function to refresh charts
-        function refreshCharts(data) {
-            var tempAcquaData = data.map(point => ({ x: point.timestamp, y: point.temp_acqua }));
-            var pressioneOlioData = data.map(point => ({ x: point.timestamp, y: point.pressione_olio }));
-            var voltaggioBatteriaData = data.map(point => ({ x: point.timestamp, y: point.voltaggio_batteria }));
-            var contaoreMotoreData = data.map(point => ({ x: point.timestamp, y: point.contaore_motore }));
-
-            updateChart('tempAcquaChart', 'Temperatura Acqua', tempAcquaData);
-            updateChart('pressioneOlioChart', 'Pressione Olio', pressioneOlioData);
-            updateChart('voltaggioBatteriaChart', 'Voltaggio Batteria', voltaggioBatteriaData);
-            updateChart('contaoreMotoreChart', 'Contaore Motore', contaoreMotoreData);
-        }
-
-        // Function to update charts
-        function updateChart(chartId, label, data) {
-            var ctx = document.getElementById(chartId).getContext('2d');
-            var chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.map(item => item.x),
-                    datasets: [{
-                        label: label,
-                        data: data.map(item => item.y),
-                        borderColor: 'blue',
-                        borderWidth: 1,
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        xAxes: [{
-                            type: 'time',
-                            time: {
-                                unit: 'minute',
-                                tooltipFormat: 'll HH:mm'
-                            },
-                            ticks: {
-                                autoSkip: true,
-                                maxTicksLimit: 10
-                            }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true
-                            }
-                        }]
-                    }
-                }
-            });
-        }
-    </script>
-    <div class="container">
-        <div class="graph">
-            <h3>Temperatura Acqua</h3>
-            <canvas id="tempAcquaChart" width="400" height="300"></canvas>
+    <div class="chart-container">
+        <div class="chart">
+            <h2>Temperatura Acqua</h2>
+            <img id="temp_acqua_chart" src="" alt="Grafico Temperatura Acqua">
         </div>
-        <div class="graph">
-            <h3>Pressione Olio</h3>
-            <canvas id="pressioneOlioChart" width="400" height="300"></canvas>
+        <div class="chart">
+            <h2>Pressione Olio</h2>
+            <img id="pressione_olio_chart" src="" alt="Grafico Pressione Olio">
         </div>
-        <div class="graph">
-            <h3>Voltaggio Batteria</h3>
-            <canvas id="voltaggioBatteriaChart" width="400" height="300"></canvas>
+        <div class="chart">
+            <h2>Voltaggio Batteria</h2>
+            <img id="voltaggio_batteria_chart" src="" alt="Grafico Voltaggio Batteria">
         </div>
-        <div class="graph">
-            <h3>Contaore Motore</h3>
-            <canvas id="contaoreMotoreChart" width="400" height="300"></canvas>
+        <div class="chart">
+            <h2>Contaore Motore</h2>
+            <img id="contaore_motore_chart" src="" alt="Grafico Contaore Motore">
         </div>
     </div>
-    <table>
+    <table id="history_table">
         <thead>
             <tr>
                 <th>Timestamp</th>
                 <th>Latitudine</th>
                 <th>Longitudine</th>
-                <th>Temp. Acqua</th>
+                <th>Temperatura Acqua</th>
                 <th>Pressione Olio</th>
                 <th>Voltaggio Batteria</th>
                 <th>Contaore Motore</th>
                 <th>Errori</th>
             </tr>
         </thead>
-        <tbody id="history-table">
+        <tbody>
+            {% for entry in vehicle_history %}
+            <tr>
+                <td>{{ entry.timestamp }}</td>
+                <td>{{ entry.latitude }}</td>
+                <td>{{ entry.longitude }}</td>
+                <td>{{ entry.temp_acqua }}</td>
+                <td>{{ entry.pressione_olio }}</td>
+                <td>{{ entry.voltaggio_batteria }}</td>
+                <td>{{ entry.contaore_motore }}</td>
+                <td>{{ entry.errori }}</td>
+            </tr>
+            {% endfor %}
         </tbody>
     </table>
+    <script>
+        // Caricamento dei grafici
+        document.getElementById('temp_acqua_chart').src = "{{ temp_acqua_chart }}";
+        document.getElementById('pressione_olio_chart').src = "{{ pressione_olio_chart }}";
+        document.getElementById('voltaggio_batteria_chart').src = "{{ voltaggio_batteria_chart }}";
+        document.getElementById('contaore_motore_chart').src = "{{ contaore_motore_chart }}";
+    </script>
 </body>
 </html>
