@@ -12,6 +12,22 @@
         #map {
             height: 60vh;
             width: 100%;
+            margin-bottom: 20px;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+        .graph {
+            flex: 0 0 45%;
+            margin-bottom: 20px;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            height: auto;
         }
         table {
             width: 100%;
@@ -26,62 +42,11 @@
         th {
             background-color: #f4f4f4;
         }
-        .graph-container {
-            margin-top: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-        }
-        .graph {
-            width: 45%;
-            margin-bottom: 20px;
-        }
-        canvas {
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            max-width: 100%;
-            height: auto;
-        }
     </style>
 </head>
 <body>
     <h1>Storico Veicolo {{ vehicle_id }}</h1>
     <div id="map"></div>
-    <table>
-        <thead>
-            <tr>
-                <th>Timestamp</th>
-                <th>Latitudine</th>
-                <th>Longitudine</th>
-                <th>Temperatura Acqua</th>
-                <th>Pressione Olio</th>
-                <th>Voltaggio Batteria</th>
-                <th>Contaore Motore</th>
-                <th>Errori</th>
-            </tr>
-        </thead>
-        <tbody id="history-table">
-        </tbody>
-    </table>
-    <div class="graph-container">
-        <div class="graph">
-            <h3>Temperatura Acqua</h3>
-            <img src="data:image/png;base64,{{ temp_acqua_graph }}" alt="Grafico Temperatura Acqua">
-        </div>
-        <div class="graph">
-            <h3>Pressione Olio</h3>
-            <img src="data:image/png;base64,{{ pressione_olio_graph }}" alt="Grafico Pressione Olio">
-        </div>
-        <div class="graph">
-            <h3>Voltaggio Batteria</h3>
-            <img src="data:image/png;base64,{{ voltaggio_batteria_graph }}" alt="Grafico Voltaggio Batteria">
-        </div>
-        <div class="graph">
-            <h3>Contaore Motore</h3>
-            <img src="data:image/png;base64,{{ contaore_motore_graph }}" alt="Grafico Contaore Motore">
-        </div>
-    </div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([41.9028, 12.4964], 6);
@@ -116,6 +81,56 @@
                         .bindPopup(`<b>${point.timestamp}</b>`);
                 });
             });
+
+        function refreshData() {
+            fetch(`/api/vehicle_history/${vehicle_id}`)
+                .then(response => response.json())
+                .then(data => {
+                    var table = document.getElementById('history-table');
+                    table.innerHTML = ''; // Clear existing rows
+
+                    var latlngs = data.map(point => [point.latitude, point.longitude]);
+
+                    var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
+                    map.fitBounds(polyline.getBounds());
+
+                    data.forEach(point => {
+                        var row = table.insertRow();
+                        row.insertCell(0).textContent = point.timestamp;
+                        row.insertCell(1).textContent = point.latitude;
+                        row.insertCell(2).textContent = point.longitude;
+                        row.insertCell(3).textContent = point.temp_acqua;
+                        row.insertCell(4).textContent = point.pressione_olio;
+                        row.insertCell(5).textContent = point.voltaggio_batteria;
+                        row.insertCell(6).textContent = point.contaore_motore;
+                        row.insertCell(7).textContent = point.errori.join(', ');
+
+                        L.marker([point.latitude, point.longitude]).addTo(map)
+                            .bindPopup(`<b>${point.timestamp}</b>`);
+                    });
+                });
+        }
+
+        // Refresh data every 30 seconds
+        setInterval(refreshData, 30000);
     </script>
+    <div class="container">
+        <div class="graph">
+            <h3>Temperatura Acqua</h3>
+            <canvas id="tempAcquaChart" width="400" height="300"></canvas>
+        </div>
+        <div class="graph">
+            <h3>Pressione Olio</h3>
+            <canvas id="pressioneOlioChart" width="400" height="300"></canvas>
+        </div>
+        <div class="graph">
+            <h3>Voltaggio Batteria</h3>
+            <canvas id="voltaggioBatteriaChart" width="400" height="300"></canvas>
+        </div>
+        <div class="graph">
+            <h3>Contaore Motore</h3>
+            <canvas id="contaoreMotoreChart" width="400" height="300"></canvas>
+        </div>
+    </div>
 </body>
 </html>
