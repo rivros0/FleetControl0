@@ -5,6 +5,8 @@ import random
 server_url = 'http://test0000.pythonanywhere.com/api/update_location'  # URL del server Flask hostato su PythonAnywhere
 vehicle_ids = ['Punto', 'Panda', 'CarroArmatoSovietico']
 
+
+
 while True:
     for vehicle_id in vehicle_ids:
         latitude = random.uniform(38.0, 42.0)

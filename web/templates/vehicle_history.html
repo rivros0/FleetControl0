@@ -3,118 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle History</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <title>Vehicle History - {{ vehicle_id }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
         }
-        #map {
-            height: 60vh;
-            width: 100%;
-        }
-        .chart-container {
-            margin-top: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-        }
         .chart {
             width: 48%;
-            margin-bottom: 20px;
+            float: left;
+            margin-right: 10px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-        th {
-            background-color: #f4f4f4;
+        .clear {
+            clear: both;
         }
     </style>
 </head>
 <body>
-    <h1>Storico Veicolo {{ vehicle_id }}</h1>
-    <div id="map"></div>
-    <div class="chart-container">
-        <div class="chart">
-            <h2>Temperatura Acqua</h2>
-            <img id="temp_acqua_chart" src="data:image/png;base64,{{ temp_acqua_chart }}" alt="Grafico Temperatura Acqua">
-        </div>
-        <div class="chart">
-            <h2>Pressione Olio</h2>
-            <img id="pressione_olio_chart" src="data:image/png;base64,{{ pressione_olio_chart }}" alt="Grafico Pressione Olio">
-        </div>
-        <div class="chart">
-            <h2>Voltaggio Batteria</h2>
-            <img id="voltaggio_batteria_chart" src="data:image/png;base64,{{ voltaggio_batteria_chart }}" alt="Grafico Voltaggio Batteria">
-        </div>
-        <div class="chart">
-            <h2>Contaore Motore</h2>
-            <img id="contaore_motore_chart" src="data:image/png;base64,{{ contaore_motore_chart }}" alt="Grafico Contaore Motore">
-        </div>
+    <h1>Vehicle History - {{ vehicle_id }}</h1>
+
+    <div class="chart">
+        <h2>Temperatura Acqua</h2>
+        <img src="data:image/png;base64,{{ vehicle_data['img_base64'] }}" alt="Temp Acqua">
     </div>
-    <table id="history_table">
-        <thead>
-            <tr>
-                <th>Timestamp</th>
-                <th>Latitudine</th>
-                <th>Longitudine</th>
-                <th>Temperatura Acqua</th>
-                <th>Pressione Olio</th>
-                <th>Voltaggio Batteria</th>
-                <th>Contaore Motore</th>
-                <th>Errori</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for entry in vehicle_history %}
-            <tr>
-                <td>{{ entry.timestamp }}</td>
-                <td>{{ entry.latitude }}</td>
-                <td>{{ entry.longitude }}</td>
-                <td>{{ entry.temp_acqua }}</td>
-                <td>{{ entry.pressione_olio }}</td>
-                <td>{{ entry.voltaggio_batteria }}</td>
-                <td>{{ entry.contaore_motore }}</td>
-                <td>{{ entry.errori }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <script>
-        // Inizializzazione della mappa Leaflet
-        var map = L.map('map').setView([41.9028, 12.4964], 6);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
 
-        // Caricamento dei grafici
-        document.getElementById('temp_acqua_chart').src = "data:image/png;base64,{{ temp_acqua_chart }}";
-        document.getElementById('pressione_olio_chart').src = "data:image/png;base64,{{ pressione_olio_chart }}";
-        document.getElementById('voltaggio_batteria_chart').src = "data:image/png;base64,{{ voltaggio_batteria_chart }}";
-        document.getElementById('contaore_motore_chart').src = "data:image/png;base64,{{ contaore_motore_chart }}";
+    <div class="chart">
+        <h2>Pressione Olio</h2>
+        <img src="data:image/png;base64,{{ vehicle_data['img_base64'] }}" alt="Pressione Olio">
+    </div>
 
-        // Inizializzazione dei marker sulla mappa per le posizioni storiche
-        var latlngs = [
-            {% for entry in vehicle_history %}
-            [{{ entry.latitude }}, {{ entry.longitude }}],
-            {% endfor %}
-        ];
+    <div class="chart">
+        <h2>Voltaggio Batteria</h2>
+        <img src="data:image/png;base64,{{ vehicle_data['img_base64'] }}" alt="Voltaggio Batteria">
+    </div>
 
-        for (var i = 0; i < latlngs.length; i++) {
-            L.marker(latlngs[i]).addTo(map)
-                .bindPopup(`<b>{{ vehicle_id }}</b><br>Timestamp: {{ vehicle_history[i].timestamp }}`);
-        }
+    <div class="chart">
+        <h2>Contaore Motore</h2>
+        <img src="data:image/png;base64,{{ vehicle_data['img_base64'] }}" alt="Contaore Motore">
+    </div>
 
-        // Ricalcolo del bounds della mappa per includere tutti i marker
-        var bounds = L.latLngBounds(latlngs);
-        map.fitBounds(bounds);
-    </script>
+    <div class="clear"></div>
 </body>
 </html>

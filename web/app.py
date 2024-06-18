@@ -1,114 +1,104 @@
-from flask import Flask, render_template, request, jsonify
 import matplotlib.pyplot as plt
-from io import BytesIO
+from flask import Flask, render_template, jsonify
+import io
 import base64
-from collections import deque
+import random
+import time
 
 app = Flask(__name__)
 
-# Memorizzare le posizioni attuali in una struttura in memoria
-current_positions = {}
-vehicle_histories = {}
-
-# Massimo numero di punti storici da mantenere per ciascun veicolo
-MAX_HISTORY_POINTS = 100
-
-# Aggiornamento della posizione del veicolo
-@app.route('/api/update_location', methods=['POST'])
-def update_location():
-    vehicle_id = request.form['vehicle_id']
-    latitude = float(request.form['latitude'])
-    longitude = float(request.form['longitude'])
-    timestamp = request.form['timestamp']
-    temp_acqua = float(request.form.get('temp_acqua', 0.0))
-    pressione_olio = float(request.form.get('pressione_olio', 0.0))
-    voltaggio_batteria = float(request.form.get('voltaggio_batteria', 0.0))
-    contaore_motore = float(request.form.get('contaore_motore', 0.0))
-    errori = request.form.get('errori', '').split(',')
-
-    # Aggiornamento della posizione attuale del veicolo
-    current_positions[vehicle_id] = {
-        'latitude': latitude,
-        'longitude': longitude,
-        'last_seen': timestamp,
-        'temp_acqua': temp_acqua,
-        'pressione_olio': pressione_olio,
-        'voltaggio_batteria': voltaggio_batteria,
-        'contaore_motore': contaore_motore,
-        'errori': errori
+# Dati iniziali dei veicoli
+vehicle_data = {
+    'VEHICLE001': {
+        'temp_acqua': [],
+        'pressione_olio': [],
+        'voltaggio_batteria': [],
+        'contaore_motore': [],
+        'errori': []
+    },
+    'VEHICLE002': {
+        'temp_acqua': [],
+        'pressione_olio': [],
+        'voltaggio_batteria': [],
+        'contaore_motore': [],
+        'errori': []
+    },
+    'VEHICLE003': {
+        'temp_acqua': [],
+        'pressione_olio': [],
+        'voltaggio_batteria': [],
+        'contaore_motore': [],
+        'errori': []
     }
-
-    # Aggiungere la posizione allo storico
-    if vehicle_id not in vehicle_histories:
-        vehicle_histories[vehicle_id] = deque(maxlen=MAX_HISTORY_POINTS)
-    vehicle_histories[vehicle_id].appendleft({
-        'latitude': latitude,
-        'longitude': longitude,
-        'timestamp': timestamp,
-        'temp_acqua': temp_acqua,
-        'pressione_olio': pressione_olio,
-        'voltaggio_batteria': voltaggio_batteria,
-        'contaore_motore': contaore_motore,
-        'errori': errori
-    })
-
-    print(f"Ricevuta posizione per {vehicle_id}: {latitude}, {longitude}")
-
-    return "Posizione aggiornata con successo", 200
-
-# Endpoint per ottenere la posizione corrente dei veicoli
-@app.route('/api/current_locations', methods=['GET'])
-def get_current_locations():
-    return jsonify([{'vehicle_id': vehicle_id, **data} for vehicle_id, data in current_positions.items()])
+}
 
 # Funzione per generare i grafici
 def generate_charts(vehicle_id):
-    data = list(vehicle_histories.get(vehicle_id, []))
+    fig, axs = plt.subplots(2, 2, figsize=(10, 8))
+    charts = {
+        'temp_acqua': axs[0, 0],
+        'pressione_olio': axs[0, 1],
+        'voltaggio_batteria': axs[1, 0],
+        'contaore_motore': axs[1, 1]
+    }
 
-    if not data:
-        return None, None, None, None
+    for chart_name, ax in charts.items():
+        ax.plot([entry[0] for entry in vehicle_data[vehicle_id][chart_name]],
+                [entry[1] for entry in vehicle_data[vehicle_id][chart_name]])
+        ax.set_title(chart_name.replace("_", " ").title())
+        ax.set_xlabel('Timestamp')
+        ax.set_ylabel('Value')
 
-    timestamps = [entry['timestamp'] for entry in data]
-    temp_acqua_values = [entry['temp_acqua'] for entry in data]
-    pressione_olio_values = [entry['pressione_olio'] for entry in data]
-    voltaggio_batteria_values = [entry['voltaggio_batteria'] for entry in data]
-    contaore_motore_values = [entry['contaore_motore'] for entry in data]
-
-    # Grafico per la temperatura dell'acqua
-    temp_acqua_chart = generate_chart(timestamps, temp_acqua_values, 'Temperatura Acqua')
-
-    # Grafico per la pressione dell'olio
-    pressione_olio_chart = generate_chart(timestamps, pressione_olio_values, 'Pressione Olio')
-
-    # Grafico per il voltaggio della batteria
-    voltaggio_batteria_chart = generate_chart(timestamps, voltaggio_batteria_values, 'Voltaggio Batteria')
-
-    # Grafico per il contaore del motore
-    contaore_motore_chart = generate_chart(timestamps, contaore_motore_values, 'Contaore Motore')
-
-    return temp_acqua_chart, pressione_olio_chart, voltaggio_batteria_chart, contaore_motore_chart
-
-def generate_chart(x_values, y_values, title):
-    plt.figure(figsize=(8, 6))
-    plt.plot(x_values, y_values, marker='o', linestyle='-', color='b')
-    plt.title(title)
-    plt.xlabel('Timestamp')
-    plt.ylabel('Valore')
-    plt.xticks(rotation=45)
-    img = BytesIO()
+    # Convertire il grafico in un'immagine base64
+    img = io.BytesIO()
+    plt.tight_layout()
     plt.savefig(img, format='png')
     img.seek(0)
-    return base64.b64encode(img.getvalue()).decode()
+    img_base64 = base64.b64encode(img.getvalue()).decode()
+    plt.close()
 
-# Pagina di storico delle posizioni di un veicolo
+    return img_base64
+
+# Funzione per aggiornare i dati e generare i grafici
+def update_data_and_charts():
+    while True:
+        # Simulazione di aggiornamento dati dai veicoli (da sostituire con dati reali)
+        for vehicle_id in vehicle_data.keys():
+            # Simulazione di dati casuali (sostituire con i dati reali provenienti dai veicoli)
+            timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+            temp_acqua = random.uniform(60, 100)
+            pressione_olio = random.uniform(10, 100)
+            voltaggio_batteria = random.uniform(11, 14)
+            contaore_motore = random.randint(1000, 5000)
+            errori = random.randint(0, 5)
+
+            # Aggiornare i dati per il veicolo selezionato
+            vehicle_data[vehicle_id]['temp_acqua'].append((timestamp, temp_acqua))
+            vehicle_data[vehicle_id]['pressione_olio'].append((timestamp, pressione_olio))
+            vehicle_data[vehicle_id]['voltaggio_batteria'].append((timestamp, voltaggio_batteria))
+            vehicle_data[vehicle_id]['contaore_motore'].append((timestamp, contaore_motore))
+            vehicle_data[vehicle_id]['errori'].append((timestamp, errori))
+
+            # Mantieni solo gli ultimi 10 dati per ogni tipo
+            for key in vehicle_data[vehicle_id].keys():
+                vehicle_data[vehicle_id][key] = vehicle_data[vehicle_id][key][-10:]
+
+            # Genera i grafici per il veicolo
+            img_base64 = generate_charts(vehicle_id)
+            vehicle_data[vehicle_id]['img_base64'] = img_base64
+
+        time.sleep(5)
+
+# Avvia il thread per aggiornare i dati e generare i grafici
+import threading
+update_thread = threading.Thread(target=update_data_and_charts)
+update_thread.daemon = True
+update_thread.start()
+
+# Endpoint per visualizzare la pagina vehicle_history
 @app.route('/vehicle_history/<vehicle_id>')
 def vehicle_history(vehicle_id):
-    temp_acqua_chart, pressione_olio_chart, voltaggio_batteria_chart, contaore_motore_chart = generate_charts(vehicle_id)
-    vehicle_history_data = list(vehicle_histories.get(vehicle_id, []))
-    vehicle_history_data.reverse()  # Inverti l'ordine dei record storici per visualizzare l'ultimo per primo
-    return render_template('vehicle_history.html', vehicle_id=vehicle_id, vehicle_history=vehicle_history_data,
-                           temp_acqua_chart=temp_acqua_chart, pressione_olio_chart=pressione_olio_chart,
-                           voltaggio_batteria_chart=voltaggio_batteria_chart, contaore_motore_chart=contaore_motore_chart)
+    return render_template('vehicle_history.html', vehicle_id=vehicle_id, vehicle_data=vehicle_data[vehicle_id])
 
 if __name__ == "__main__":
     app.run(debug=True)
