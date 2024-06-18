@@ -44,19 +44,19 @@
     <div class="chart-container">
         <div class="chart">
             <h2>Temperatura Acqua</h2>
-            <img id="temp_acqua_chart" src="" alt="Grafico Temperatura Acqua">
+            <img id="temp_acqua_chart" src="data:image/png;base64,{{ temp_acqua_chart }}" alt="Grafico Temperatura Acqua">
         </div>
         <div class="chart">
             <h2>Pressione Olio</h2>
-            <img id="pressione_olio_chart" src="" alt="Grafico Pressione Olio">
+            <img id="pressione_olio_chart" src="data:image/png;base64,{{ pressione_olio_chart }}" alt="Grafico Pressione Olio">
         </div>
         <div class="chart">
             <h2>Voltaggio Batteria</h2>
-            <img id="voltaggio_batteria_chart" src="" alt="Grafico Voltaggio Batteria">
+            <img id="voltaggio_batteria_chart" src="data:image/png;base64,{{ voltaggio_batteria_chart }}" alt="Grafico Voltaggio Batteria">
         </div>
         <div class="chart">
             <h2>Contaore Motore</h2>
-            <img id="contaore_motore_chart" src="" alt="Grafico Contaore Motore">
+            <img id="contaore_motore_chart" src="data:image/png;base64,{{ contaore_motore_chart }}" alt="Grafico Contaore Motore">
         </div>
     </div>
     <table id="history_table">
@@ -88,11 +88,33 @@
         </tbody>
     </table>
     <script>
+        // Inizializzazione della mappa Leaflet
+        var map = L.map('map').setView([41.9028, 12.4964], 6);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
         // Caricamento dei grafici
-        document.getElementById('temp_acqua_chart').src = "{{ temp_acqua_chart }}";
-        document.getElementById('pressione_olio_chart').src = "{{ pressione_olio_chart }}";
-        document.getElementById('voltaggio_batteria_chart').src = "{{ voltaggio_batteria_chart }}";
-        document.getElementById('contaore_motore_chart').src = "{{ contaore_motore_chart }}";
+        document.getElementById('temp_acqua_chart').src = "data:image/png;base64,{{ temp_acqua_chart }}";
+        document.getElementById('pressione_olio_chart').src = "data:image/png;base64,{{ pressione_olio_chart }}";
+        document.getElementById('voltaggio_batteria_chart').src = "data:image/png;base64,{{ voltaggio_batteria_chart }}";
+        document.getElementById('contaore_motore_chart').src = "data:image/png;base64,{{ contaore_motore_chart }}";
+
+        // Inizializzazione dei marker sulla mappa per le posizioni storiche
+        var latlngs = [
+            {% for entry in vehicle_history %}
+            [{{ entry.latitude }}, {{ entry.longitude }}],
+            {% endfor %}
+        ];
+
+        for (var i = 0; i < latlngs.length; i++) {
+            L.marker(latlngs[i]).addTo(map)
+                .bindPopup(`<b>{{ vehicle_id }}</b><br>Timestamp: {{ vehicle_history[i].timestamp }}`);
+        }
+
+        // Ricalcolo del bounds della mappa per includere tutti i marker
+        var bounds = L.latLngBounds(latlngs);
+        map.fitBounds(bounds);
     </script>
 </body>
 </html>
