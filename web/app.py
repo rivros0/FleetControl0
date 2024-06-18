@@ -9,7 +9,7 @@ app = Flask(__name__)
 current_positions = {}
 vehicle_histories = {}
 
-# Endpoint per aggiornare la posizione del veicolo
+# Aggiornamento della posizione del veicolo
 @app.route('/api/update_location', methods=['POST'])
 def update_location():
     vehicle_id = request.form['vehicle_id']
@@ -20,9 +20,9 @@ def update_location():
     pressione_olio = float(request.form.get('pressione_olio', 0.0))
     voltaggio_batteria = float(request.form.get('voltaggio_batteria', 0.0))
     contaore_motore = float(request.form.get('contaore_motore', 0.0))
-    errori = request.form.getlist('errori')
+    errori = request.form.get('errori', '').split(',')
 
-    # Aggiornare la posizione attuale del veicolo
+    # Aggiornamento della posizione attuale del veicolo
     current_positions[vehicle_id] = {
         'latitude': latitude,
         'longitude': longitude,
@@ -33,7 +33,7 @@ def update_location():
         'contaore_motore': contaore_motore,
         'errori': errori
     }
-    
+
     # Aggiungere la posizione allo storico
     if vehicle_id not in vehicle_histories:
         vehicle_histories[vehicle_id] = []
@@ -49,7 +49,79 @@ def update_location():
     })
 
     print(f"Ricevuta posizione per {vehicle_id}: {latitude}, {longitude}")
+
+    # Generazione dei grafici
+    generate_charts(vehicle_id)
+
     return "Posizione aggiornata con successo", 200
+
+# Funzione per generare i grafici
+def generate_charts(vehicle_id):
+    data = vehicle_histories.get(vehicle_id, [])
+
+    if not data:
+        return
+
+    timestamps = [entry['timestamp'] for entry in data]
+    temp_acqua_values = [entry['temp_acqua'] for entry in data]
+    pressione_olio_values = [entry['pressione_olio'] for entry in data]
+    voltaggio_batteria_values = [entry['voltaggio_batteria'] for entry in data]
+    contaore_motore_values = [entry['contaore_motore'] for entry in data]
+
+    # Grafico per la temperatura dell'acqua
+    plt.figure(figsize=(8, 6))
+    plt.plot(timestamps, temp_acqua_values, marker='o', linestyle='-', color='b', label='Temperatura Acqua')
+    plt.title(f"Temperatura Acqua - Veicolo {vehicle_id}")
+    plt.xlabel('Timestamp')
+    plt.ylabel('Temperatura')
+    plt.xticks(rotation=45)
+    plt.legend()
+    temp_acqua_chart = get_chart_image()
+
+    # Grafico per la pressione dell'olio
+    plt.figure(figsize=(8, 6))
+    plt.plot(timestamps, pressione_olio_values, marker='o', linestyle='-', color='g', label='Pressione Olio')
+    plt.title(f"Pressione Olio - Veicolo {vehicle_id}")
+    plt.xlabel('Timestamp')
+    plt.ylabel('Pressione')
+    plt.xticks(rotation=45)
+    plt.legend()
+    pressione_olio_chart = get_chart_image()
+
+    # Grafico per il voltaggio della batteria
+    plt.figure(figsize=(8, 6))
+    plt.plot(timestamps, voltaggio_batteria_values, marker='o', linestyle='-', color='r', label='Voltaggio Batteria')
+    plt.title(f"Voltaggio Batteria - Veicolo {vehicle_id}")
+    plt.xlabel('Timestamp')
+    plt.ylabel('Voltaggio')
+    plt.xticks(rotation=45)
+    plt.legend()
+    voltaggio_batteria_chart = get_chart_image()
+
+    # Grafico per il contaore del motore
+    plt.figure(figsize=(8, 6))
+    plt.plot(timestamps, contaore_motore_values, marker='o', linestyle='-', color='purple', label='Contaore Motore')
+    plt.title(f"Contaore Motore - Veicolo {vehicle_id}")
+    plt.xlabel('Timestamp')
+    plt.ylabel('Contaore')
+    plt.xticks(rotation=45)
+    plt.legend()
+    contaore_motore_chart = get_chart_image()
+
+    # Salvataggio dei grafici come immagini
+    save_charts(vehicle_id, temp_acqua_chart, pressione_olio_chart, voltaggio_batteria_chart, contaore_motore_chart)
+
+def get_chart_image():
+    img = BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    return base64.b64encode(img.getvalue()).decode()
+
+def save_charts(vehicle_id, temp_acqua_chart, pressione_olio_chart, voltaggio_batteria_chart, contaore_motore_chart):
+    # Salvataggio delle immagini dei grafici
+    # Qui potresti implementare il salvataggio delle immagini su disco o su un sistema di archiviazione
+    # Per questa implementazione, stiamo utilizzando la generazione di immagini temporanee
+    pass
 
 # Endpoint per ottenere la posizione corrente dei veicoli
 @app.route('/api/current_locations', methods=['GET'])
@@ -70,47 +142,6 @@ def index():
 @app.route('/vehicle_history/<vehicle_id>')
 def vehicle_history(vehicle_id):
     return render_template('vehicle_history.html', vehicle_id=vehicle_id)
-
-# Funzione per generare grafici
-def generate_graphs(data):
-    timestamps = [point['timestamp'] for point in data]
-    temp_acqua = [point['temp_acqua'] for point in data]
-    pressione_olio = [point['pressione_olio'] for point in data]
-    voltaggio_batteria = [point['voltaggio_batteria'] for point in data]
-    contaore_motore = [point['contaore_motore'] for point in data]
-
-    fig, axs = plt.subplots(4, 1, figsize=(8, 12))
-
-    axs[0].plot(timestamps, temp_acqua, marker='o', linestyle='-')
-    axs[0].set_title('Temperatura Acqua')
-    axs[0].set_ylabel('Temperatura (°C)')
-    axs[0].grid(True)
-
-    axs[1].plot(timestamps, pressione_olio, marker='o', linestyle='-')
-    axs[1].set_title('Pressione Olio')
-    axs[1].set_ylabel('Pressione (psi)')
-    axs[1].grid(True)
-
-    axs[2].plot(timestamps, voltaggio_batteria, marker='o', linestyle='-')
-    axs[2].set_title('Voltaggio Batteria')
-    axs[2].set_ylabel('Voltaggio (V)')
-    axs[2].grid(True)
-
-    axs[3].plot(timestamps, contaore_motore, marker='o', linestyle='-')
-    axs[3].set_title('Contaore Motore')
-    axs[3].set_ylabel('Contatore')
-    axs[3].grid(True)
-
-    plt.tight_layout()
-    
-    # Salvataggio del grafico in formato base64 per l'integrazione in HTML
-    img_stream = BytesIO()
-    plt.savefig(img_stream, format='png')
-    img_stream.seek(0)
-    img_base64 = base64.b64encode(img_stream.read()).decode('utf-8')
-    plt.close()
-
-    return img_base64
 
 if __name__ == "__main__":
     app.run(debug=True)
