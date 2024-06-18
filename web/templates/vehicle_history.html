@@ -26,8 +26,17 @@
         th {
             background-color: #f4f4f4;
         }
-        canvas {
+        .graph-container {
             margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+        .graph {
+            width: 45%;
+            margin-bottom: 20px;
+        }
+        canvas {
             display: block;
             margin-left: auto;
             margin-right: auto;
@@ -55,8 +64,24 @@
         <tbody id="history-table">
         </tbody>
     </table>
-    <canvas id="statsChart" width="800" height="400"></canvas>
-
+    <div class="graph-container">
+        <div class="graph">
+            <h3>Temperatura Acqua</h3>
+            <img src="data:image/png;base64,{{ temp_acqua_graph }}" alt="Grafico Temperatura Acqua">
+        </div>
+        <div class="graph">
+            <h3>Pressione Olio</h3>
+            <img src="data:image/png;base64,{{ pressione_olio_graph }}" alt="Grafico Pressione Olio">
+        </div>
+        <div class="graph">
+            <h3>Voltaggio Batteria</h3>
+            <img src="data:image/png;base64,{{ voltaggio_batteria_graph }}" alt="Grafico Voltaggio Batteria">
+        </div>
+        <div class="graph">
+            <h3>Contaore Motore</h3>
+            <img src="data:image/png;base64,{{ contaore_motore_graph }}" alt="Grafico Contaore Motore">
+        </div>
+    </div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([41.9028, 12.4964], 6);
@@ -91,16 +116,6 @@
                         .bindPopup(`<b>${point.timestamp}</b>`);
                 });
             });
-
-        // Inserire il grafico generato dal server
-        var graphData = "{{ graph_data }}";
-        var ctx = document.getElementById('statsChart').getContext('2d');
-        var img = new Image();
-        img.onload = function() {
-            ctx.drawImage(img, 0, 0);
-        };
-        img.src = 'data:image/png;base64,' + graphData;
-
     </script>
 </body>
 </html>

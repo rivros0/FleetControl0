@@ -66,6 +66,28 @@ def get_vehicle_history(vehicle_id):
 def index():
     return render_template('index.html')
 
+# Funzione per generare un grafico e restituire i dati base64
+def generate_graph(data, ylabel, title):
+    timestamps = [entry['timestamp'] for entry in data]
+    values = [entry[ylabel] for entry in data]
+
+    plt.figure(figsize=(8, 4))
+    plt.plot(timestamps, values, marker='o', color='blue')
+    plt.xlabel('Timestamp')
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.xticks(rotation=45)
+    plt.grid(True)
+
+    # Salvataggio del grafico in formato base64
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    graph_data = base64.b64encode(buffer.getvalue()).decode()
+    plt.close()
+
+    return graph_data
+
 # Pagina di storico delle posizioni di un veicolo
 @app.route('/vehicle_history/<vehicle_id>')
 def vehicle_history(vehicle_id):
@@ -73,33 +95,16 @@ def vehicle_history(vehicle_id):
         return "Veicolo non trovato", 404
 
     data = vehicle_histories[vehicle_id]
-    timestamps = [entry['timestamp'] for entry in data]
-    temp_acqua_data = [entry['temp_acqua'] for entry in data]
-    pressione_olio_data = [entry['pressione_olio'] for entry in data]
-    voltaggio_batteria_data = [entry['voltaggio_batteria'] for entry in data]
-    contaore_motore_data = [entry['contaore_motore'] for entry in data]
+    temp_acqua_graph = generate_graph(data, 'temp_acqua', 'Temperatura Acqua')
+    pressione_olio_graph = generate_graph(data, 'pressione_olio', 'Pressione Olio')
+    voltaggio_batteria_graph = generate_graph(data, 'voltaggio_batteria', 'Voltaggio Batteria')
+    contaore_motore_graph = generate_graph(data, 'contaore_motore', 'Contaore Motore')
 
-    # Creazione del grafico con Matplotlib
-    plt.figure(figsize=(10, 6))
-    plt.plot(timestamps, temp_acqua_data, marker='o', label='Temperatura Acqua', color='blue')
-    plt.plot(timestamps, pressione_olio_data, marker='o', label='Pressione Olio', color='green')
-    plt.plot(timestamps, voltaggio_batteria_data, marker='o', label='Voltaggio Batteria', color='orange')
-    plt.plot(timestamps, contaore_motore_data, marker='o', label='Contaore Motore', color='red')
-    plt.xlabel('Timestamp')
-    plt.ylabel('Valori')
-    plt.title(f'Statistiche per il veicolo {vehicle_id}')
-    plt.xticks(rotation=45)
-    plt.legend()
-
-    # Salvataggio del grafico in formato base64 per l'inclusione nella pagina HTML
-    buffer = BytesIO()
-    plt.savefig(buffer, format='png')
-    buffer.seek(0)
-    graph_data = base64.b64encode(buffer.getvalue()).decode()
-
-    plt.close()
-
-    return render_template('vehicle_history.html', vehicle_id=vehicle_id, graph_data=graph_data)
+    return render_template('vehicle_history.html', vehicle_id=vehicle_id,
+                           temp_acqua_graph=temp_acqua_graph,
+                           pressione_olio_graph=pressione_olio_graph,
+                           voltaggio_batteria_graph=voltaggio_batteria_graph,
+                           contaore_motore_graph=contaore_motore_graph)
 
 if __name__ == "__main__":
     app.run(debug=True)
