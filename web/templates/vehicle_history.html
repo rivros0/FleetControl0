@@ -28,6 +28,11 @@
         }
         canvas {
             margin-top: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 100%;
+            height: auto;
         }
     </style>
 </head>
@@ -50,10 +55,9 @@
         <tbody id="history-table">
         </tbody>
     </table>
-    <canvas id="tempAcquaChart" width="800" height="400"></canvas>
+    <canvas id="statsChart" width="800" height="400"></canvas>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         var map = L.map('map').setView([41.9028, 12.4964], 6);
 
@@ -86,41 +90,17 @@
                     L.marker([point.latitude, point.longitude]).addTo(map)
                         .bindPopup(`<b>${point.timestamp}</b>`);
                 });
-
-                // Creazione del grafico della temperatura dell'acqua
-                var timestamps = data.map(point => point.timestamp);
-                var tempAcquaData = data.map(point => point.temp_acqua);
-
-                var ctx = document.getElementById('tempAcquaChart').getContext('2d');
-                var tempAcquaChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: timestamps,
-                        datasets: [{
-                            label: 'Temperatura dell\'Acqua',
-                            data: tempAcquaData,
-                            borderColor: 'blue',
-                            borderWidth: 1,
-                            fill: false
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            xAxes: [{
-                                type: 'time',
-                                time: {
-                                    unit: 'minute'
-                                }
-                            }],
-                            yAxes: [{
-                                ticks: {
-                                    beginAtZero: false
-                                }
-                            }]
-                        }
-                    }
-                });
             });
+
+        // Inserire il grafico generato dal server
+        var graphData = "{{ graph_data }}";
+        var ctx = document.getElementById('statsChart').getContext('2d');
+        var img = new Image();
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0);
+        };
+        img.src = 'data:image/png;base64,' + graphData;
+
     </script>
 </body>
 </html>
