@@ -141,6 +141,7 @@ def index():
 # Pagina di storico delle posizioni di un veicolo
 @app.route('/vehicle_history/<vehicle_id>')
 def vehicle_history(vehicle_id):
+    generate_charts(vehicle_id)  # Genera i grafici all'accesso alla pagina
     return render_template('vehicle_history.html', vehicle_id=vehicle_id)
 
 if __name__ == "__main__":
