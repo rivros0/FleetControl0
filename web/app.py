@@ -13,25 +13,40 @@ def update_location():
     latitude = float(request.form['latitude'])
     longitude = float(request.form['longitude'])
     timestamp = request.form['timestamp']
-    
-    # Aggiornare la posizione attuale del veicolo
+    temp_acqua = float(request.form['temp_acqua'])
+    pressione_olio = float(request.form['pressione_olio'])
+    voltaggio_batteria = float(request.form['voltaggio_batteria'])
+    contaore_motore = int(request.form['contaore_motore'])
+    errori = request.form.getlist('errori')
+
+    # Aggiornare la posizione attuale del veicolo con i nuovi dati
     current_positions[vehicle_id] = {
         'latitude': latitude,
         'longitude': longitude,
-        'last_seen': timestamp
+        'last_seen': timestamp,
+        'temp_acqua': temp_acqua,
+        'pressione_olio': pressione_olio,
+        'voltaggio_batteria': voltaggio_batteria,
+        'contaore_motore': contaore_motore,
+        'errori': errori
     }
-    
-    # Aggiungere la posizione allo storico
+
+    # Aggiungere la posizione allo storico con i nuovi dati
     if vehicle_id not in vehicle_histories:
         vehicle_histories[vehicle_id] = []
     vehicle_histories[vehicle_id].append({
         'latitude': latitude,
         'longitude': longitude,
-        'timestamp': timestamp
+        'timestamp': timestamp,
+        'temp_acqua': temp_acqua,
+        'pressione_olio': pressione_olio,
+        'voltaggio_batteria': voltaggio_batteria,
+        'contaore_motore': contaore_motore,
+        'errori': errori
     })
-    
-    print(f"Ricevuta posizione per {vehicle_id}: {latitude}, {longitude}")
-    return "Posizione aggiornata con successo", 200
+
+    print(f"Dati ricevuti per {vehicle_id}: {latitude}, {longitude}, temp_acqua: {temp_acqua}, pressione_olio: {pressione_olio}, voltaggio_batteria: {voltaggio_batteria}, contaore_motore: {contaore_motore}, errori: {errori}")
+    return "Dati aggiornati con successo", 200
 
 # Endpoint per ottenere la posizione corrente dei veicoli
 @app.route('/api/current_locations', methods=['GET'])

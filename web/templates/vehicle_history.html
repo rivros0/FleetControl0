@@ -26,6 +26,9 @@
         th {
             background-color: #f4f4f4;
         }
+        canvas {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -37,12 +40,20 @@
                 <th>Timestamp</th>
                 <th>Latitudine</th>
                 <th>Longitudine</th>
+                <th>Temperatura Acqua</th>
+                <th>Pressione Olio</th>
+                <th>Voltaggio Batteria</th>
+                <th>Contaore Motore</th>
+                <th>Errori</th>
             </tr>
         </thead>
         <tbody id="history-table">
         </tbody>
     </table>
+    <canvas id="tempAcquaChart" width="800" height="400"></canvas>
+
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         var map = L.map('map').setView([41.9028, 12.4964], 6);
 
@@ -66,9 +77,48 @@
                     row.insertCell(0).textContent = point.timestamp;
                     row.insertCell(1).textContent = point.latitude;
                     row.insertCell(2).textContent = point.longitude;
+                    row.insertCell(3).textContent = point.temp_acqua;
+                    row.insertCell(4).textContent = point.pressione_olio;
+                    row.insertCell(5).textContent = point.voltaggio_batteria;
+                    row.insertCell(6).textContent = point.contaore_motore;
+                    row.insertCell(7).textContent = point.errori.join(', ');
 
                     L.marker([point.latitude, point.longitude]).addTo(map)
                         .bindPopup(`<b>${point.timestamp}</b>`);
+                });
+
+                // Creazione del grafico della temperatura dell'acqua
+                var timestamps = data.map(point => point.timestamp);
+                var tempAcquaData = data.map(point => point.temp_acqua);
+
+                var ctx = document.getElementById('tempAcquaChart').getContext('2d');
+                var tempAcquaChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: timestamps,
+                        datasets: [{
+                            label: 'Temperatura dell\'Acqua',
+                            data: tempAcquaData,
+                            borderColor: 'blue',
+                            borderWidth: 1,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            xAxes: [{
+                                type: 'time',
+                                time: {
+                                    unit: 'minute'
+                                }
+                            }],
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: false
+                                }
+                            }]
+                        }
+                    }
                 });
             });
     </script>
