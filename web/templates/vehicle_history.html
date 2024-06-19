@@ -3,44 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle History - {{ vehicle_id }}</title>
+    <title>Storico Veicolo {{ vehicle_id }}</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         body {
             font-family: Arial, sans-serif;
         }
-        .chart {
-            width: 48%;
-            float: left;
-            margin-right: 10px;
+        #map {
+            height: 60vh;
+            width: 100%;
         }
-        .clear {
-            clear: both;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .chart {
+            width: 45%;
+            margin: 20px auto;
         }
     </style>
 </head>
 <body>
-    <h1>Vehicle History - {{ vehicle_id }}</h1>
-
+    <h1>Storico Veicolo {{ vehicle_id }}</h1>
+    <div id="map"></div>
     <div class="chart">
         <h2>Temperatura Acqua</h2>
-        <img src="data:image/png;base64,{{ vehicle_data['img_base64'] }}" alt="Temp Acqua">
+        <img src="data:image/png;base64,{{ temp_acqua_chart }}" alt="Temperatura Acqua">
     </div>
-
     <div class="chart">
         <h2>Pressione Olio</h2>
-        <img src="data:image/png;base64,{{ vehicle_data['img_base64'] }}" alt="Pressione Olio">
+        <img src="data:image/png;base64,{{ pressione_olio_chart }}" alt="Pressione Olio">
     </div>
-
     <div class="chart">
         <h2>Voltaggio Batteria</h2>
-        <img src="data:image/png;base64,{{ vehicle_data['img_base64'] }}" alt="Voltaggio Batteria">
+        <img src="data:image/png;base64,{{ voltaggio_batteria_chart }}" alt="Voltaggio Batteria">
     </div>
-
     <div class="chart">
         <h2>Contaore Motore</h2>
-        <img src="data:image/png;base64,{{ vehicle_data['img_base64'] }}" alt="Contaore Motore">
+        <img src="data:image/png;base64,{{ contaore_motore_chart }}" alt="Contaore Motore">
     </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Latitudine</th>
+                <th>Longitudine</th>
+            </tr>
+        </thead>
+        <tbody id="history-table">
+            {% for entry in vehicle_history %}
+            <tr>
+                <td>{{ entry.timestamp }}</td>
+                <td>{{ entry.latitude }}</td>
+                <td>{{ entry.longitude }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([41.9028, 12.4964], 6);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        var latlngs = [
+            {% for entry in vehicle_history %}
+            [{{ entry.latitude }}, {{ entry.longitude }}],
+            {% endfor %}
+        ];
 
-    <div class="clear"></div>
+        var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
+        map.fitBounds(polyline.getBounds());
+        
+        {% for entry in vehicle_history %}
+        L.marker([{{ entry.latitude }}, {{ entry.longitude }}]).addTo(map)
+            .bindPopup(`<b>{{ entry.timestamp }}</b>`);
+        {% endfor %}
+    </script>
 </body>
 </html>
