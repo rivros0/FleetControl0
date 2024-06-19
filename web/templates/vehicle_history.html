@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Storico Veicolo {{ vehicle_id }}</title>
+    <title>Vehicle History</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         body {
@@ -26,69 +26,81 @@
         th {
             background-color: #f4f4f4;
         }
-        .chart {
-            width: 45%;
-            margin: 20px auto;
+        canvas {
+            margin-top: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 100%;
+            height: auto;
         }
     </style>
 </head>
 <body>
     <h1>Storico Veicolo {{ vehicle_id }}</h1>
     <div id="map"></div>
-    <div class="chart">
-        <h2>Temperatura Acqua</h2>
-        <img src="data:image/png;base64,{{ temp_acqua_chart }}" alt="Temperatura Acqua">
-    </div>
-    <div class="chart">
-        <h2>Pressione Olio</h2>
-        <img src="data:image/png;base64,{{ pressione_olio_chart }}" alt="Pressione Olio">
-    </div>
-    <div class="chart">
-        <h2>Voltaggio Batteria</h2>
-        <img src="data:image/png;base64,{{ voltaggio_batteria_chart }}" alt="Voltaggio Batteria">
-    </div>
-    <div class="chart">
-        <h2>Contaore Motore</h2>
-        <img src="data:image/png;base64,{{ contaore_motore_chart }}" alt="Contaore Motore">
-    </div>
     <table>
         <thead>
             <tr>
                 <th>Timestamp</th>
                 <th>Latitudine</th>
                 <th>Longitudine</th>
+                <th>Temperatura Acqua</th>
+                <th>Pressione Olio</th>
+                <th>Voltaggio Batteria</th>
+                <th>Contaore Motore</th>
+                <th>Errori</th>
             </tr>
         </thead>
         <tbody id="history-table">
-            {% for entry in vehicle_history %}
-            <tr>
-                <td>{{ entry.timestamp }}</td>
-                <td>{{ entry.latitude }}</td>
-                <td>{{ entry.longitude }}</td>
-            </tr>
-            {% endfor %}
         </tbody>
     </table>
+    <canvas id="statsChart" width="800" height="400"></canvas>
+
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([41.9028, 12.4964], 6);
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
-        
-        var latlngs = [
-            {% for entry in vehicle_history %}
-            [{{ entry.latitude }}, {{ entry.longitude }}],
-            {% endfor %}
-        ];
 
-        var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
-        map.fitBounds(polyline.getBounds());
-        
-        {% for entry in vehicle_history %}
-        L.marker([{{ entry.latitude }}, {{ entry.longitude }}]).addTo(map)
-            .bindPopup(`<b>{{ entry.timestamp }}</b>`);
-        {% endfor %}
+        var vehicle_id = "{{ vehicle_id }}";
+
+        fetch(`/api/vehicle_history/${vehicle_id}`)
+            .then(response => response.json())
+            .then(data => {
+                var table = document.getElementById('history-table');
+                var latlngs = data.map(point => [point.latitude, point.longitude]);
+
+                var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
+                map.fitBounds(polyline.getBounds());
+
+                data.forEach(point => {
+                    var row = table.insertRow();
+                    row.insertCell(0).textContent = point.timestamp;
+                    row.insertCell(1).textContent = point.latitude;
+                    row.insertCell(2).textContent = point.longitude;
+                    row.insertCell(3).textContent = point.temp_acqua;
+                    row.insertCell(4).textContent = point.pressione_olio;
+                    row.insertCell(5).textContent = point.voltaggio_batteria;
+                    row.insertCell(6).textContent = point.contaore_motore;
+                    row.insertCell(7).textContent = point.errori.join(', ');
+
+                    L.marker([point.latitude, point.longitude]).addTo(map)
+                        .bindPopup(`<b>${point.timestamp}</b>`);
+                });
+            });
+
+        // Inserire il grafico generato dal server
+        var graphData = "{{ graph_data }}";
+        var ctx = document.getElementById('statsChart').getContext('2d');
+        var img = new Image();
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0);
+        };
+        img.src = 'data:image/png;base64,' + graphData;
+
     </script>
 </body>
 </html>
