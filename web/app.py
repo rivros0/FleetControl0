@@ -1,8 +1,10 @@
+# app.py
+
 from flask import Flask, render_template, request, jsonify
 import matplotlib.pyplot as plt
-import numpy as np
 from io import BytesIO
 import base64
+from OBDerrors import error_codes  # Importa il dizionario degli errori
 
 app = Flask(__name__)
 
@@ -62,27 +64,6 @@ def get_current_locations():
 def get_vehicle_history(vehicle_id):
     return jsonify(vehicle_histories.get(vehicle_id, []))
 
-# Funzione per generare grafici
-def generate_chart(timestamps, values, title, ylabel):
-    plt.figure(figsize=(12, 6))
-    plt.plot(timestamps, values, marker='o')
-    plt.xlabel('Timestamp')
-    plt.ylabel(ylabel)
-    plt.title(title)
-    plt.xticks(rotation=45)
-    plt.grid(True)
-    
-    mean_value = np.mean(values)
-    plt.axhline(y=mean_value, color='r', linestyle='--', label=f'Media: {mean_value:.2f}')
-    plt.legend()
-    
-    buffer = BytesIO()
-    plt.savefig(buffer, format='png')
-    buffer.seek(0)
-    graph_data = base64.b64encode(buffer.getvalue()).decode()
-    plt.close()
-    return graph_data
-
 # Pagina principale per visualizzare le posizioni dei veicoli
 @app.route('/')
 def index():
@@ -100,22 +81,52 @@ def vehicle_history(vehicle_id):
     pressione_olio_data = [entry['pressione_olio'] for entry in data]
     voltaggio_batteria_data = [entry['voltaggio_batteria'] for entry in data]
     contaore_motore_data = [entry['contaore_motore'] for entry in data]
+    errori_data = [entry['errori'] for entry in data]
 
-    # Generare grafici per ciascun tipo di dato
-    temp_acqua_chart = generate_chart(timestamps, temp_acqua_data, 'Temperatura Acqua', 'Gradi Celsius')
-    pressione_olio_chart = generate_chart(timestamps, pressione_olio_data, 'Pressione Olio', 'Pascal')
-    voltaggio_batteria_chart = generate_chart(timestamps, voltaggio_batteria_data, 'Voltaggio Batteria', 'Volt')
-    contaore_motore_chart = generate_chart(timestamps, contaore_motore_data, 'Contaore Motore', 'Ore')
+    # Creazione del grafico con Matplotlib
+    plt.figure(figsize=(10, 6))
+    plt.plot(timestamps, temp_acqua_data, marker='o', label='Temperatura Acqua', color='blue')
+    plt.plot(timestamps, pressione_olio_data, marker='o', label='Pressione Olio', color='green')
+    plt.plot(timestamps, voltaggio_batteria_data, marker='o', label='Voltaggio Batteria', color='orange')
+    plt.plot(timestamps, contaore_motore_data, marker='o', label='Contaore Motore', color='red')
+    plt.xlabel('Timestamp')
+    plt.ylabel('Valori')
+    plt.title(f'Statistiche per il veicolo {vehicle_id}')
+    plt.xticks(rotation=45)
+    plt.legend()
+    plt.grid(True)  # Aggiungi una griglia sullo sfondo del grafico
+    plt.tight_layout()
 
-    return render_template(
-        'vehicle_history.html',
-        vehicle_id=vehicle_id,
-        temp_acqua_chart=temp_acqua_chart,
-        pressione_olio_chart=pressione_olio_chart,
-        voltaggio_batteria_chart=voltaggio_batteria_chart,
-        contaore_motore_chart=contaore_motore_chart,
-        vehicle_history=data
-    )
+    # Calcola il valore medio dei dati
+    avg_temp_acqua = sum(temp_acqua_data) / len(temp_acqua_data)
+    avg_pressione_olio = sum(pressione_olio_data) / len(pressione_olio_data)
+    avg_voltaggio_batteria = sum(voltaggio_batteria_data) / len(voltaggio_batteria_data)
+    avg_contaore_motore = sum(contaore_motore_data) / len(contaore_motore_data)
+
+    # Aggiungi informazioni medie al grafico
+    plt.axhline(y=avg_temp_acqua, color='blue', linestyle='--', label=f'Media Temperatura Acqua: {avg_temp_acqua:.2f}')
+    plt.axhline(y=avg_pressione_olio, color='green', linestyle='--', label=f'Media Pressione Olio: {avg_pressione_olio:.2f}')
+    plt.axhline(y=avg_voltaggio_batteria, color='orange', linestyle='--', label=f'Media Voltaggio Batteria: {avg_voltaggio_batteria:.2f}')
+    plt.axhline(y=avg_contaore_motore, color='red', linestyle='--', label=f'Media Contaore Motore: {avg_contaore_motore:.2f}')
+
+    # Salvataggio del grafico in formato base64 per l'inclusione nella pagina HTML
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    graph_data = base64.b64encode(buffer.getvalue()).decode()
+    plt.close()
+
+    # Prepara le informazioni sugli errori per visualizzazione
+    error_descriptions = []
+    for errors in errori_data:
+        for error in errors:
+            if error in error_codes:
+                error_info = error_codes[error]
+                error_description = f"{error_info['category']} - {error_info['name']}: {error_info['description']}"
+                error_descriptions.append(error_description)
+
+    return render_template('vehicle_history.html', vehicle_id=vehicle_id, graph_data=graph_data, error_descriptions=error_descriptions)
 
 if __name__ == "__main__":
     app.run(debug=True)
+

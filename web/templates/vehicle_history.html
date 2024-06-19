@@ -1,9 +1,11 @@
+<!-- vehicle_history.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Storico Veicolo {{ vehicle_id }}</title>
+    <title>Vehicle History</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         body {
@@ -26,11 +28,6 @@
         th {
             background-color: #f4f4f4;
         }
-        .chart {
-            width: 1200px; /* Larghezza fissa per il grafico */
-            margin: 20px auto;
-            overflow-x: scroll; /* Abilita lo scorrimento orizzontale */
-        }
         canvas {
             margin-top: 20px;
             display: block;
@@ -39,27 +36,15 @@
             max-width: 100%;
             height: auto;
         }
+        .error-list {
+            margin-top: 20px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
     <h1>Storico Veicolo {{ vehicle_id }}</h1>
     <div id="map"></div>
-    <div class="chart">
-        <h2>Temperatura Acqua</h2>
-        <img src="data:image/png;base64,{{ temp_acqua_chart }}" alt="Temperatura Acqua">
-    </div>
-    <div class="chart">
-        <h2>Pressione Olio</h2>
-        <img src="data:image/png;base64,{{ pressione_olio_chart }}" alt="Pressione Olio">
-    </div>
-    <div class="chart">
-        <h2>Voltaggio Batteria</h2>
-        <img src="data:image/png;base64,{{ voltaggio_batteria_chart }}" alt="Voltaggio Batteria">
-    </div>
-    <div class="chart">
-        <h2>Contaore Motore</h2>
-        <img src="data:image/png;base64,{{ contaore_motore_chart }}" alt="Contaore Motore">
-    </div>
     <table>
         <thead>
             <tr>
@@ -74,20 +59,19 @@
             </tr>
         </thead>
         <tbody id="history-table">
-            {% for entry in vehicle_history %}
-            <tr>
-                <td>{{ entry.timestamp }}</td>
-                <td>{{ entry.latitude }}</td>
-                <td>{{ entry.longitude }}</td>
-                <td>{{ entry.temp_acqua }}</td>
-                <td>{{ entry.pressione_olio }}</td>
-                <td>{{ entry.voltaggio_batteria }}</td>
-                <td>{{ entry.contaore_motore }}</td>
-                <td>{{ entry.errori | join(', ') }}</td>
-            </tr>
-            {% endfor %}
         </tbody>
     </table>
+    <canvas id="statsChart" width="800" height="400"></canvas>
+
+    <div class="error-list">
+        <h3>Errori:</h3>
+        <ul>
+            {% for error_description in error_descriptions %}
+                <li>{{ error_description }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([41.9028, 12.4964], 6);
@@ -96,19 +80,42 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        var latlngs = [
-            {% for entry in vehicle_history %}
-            [{{ entry.latitude }}, {{ entry.longitude }}],
-            {% endfor %}
-        ];
+        var vehicle_id = "{{ vehicle_id }}";
 
-        var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
-        map.fitBounds(polyline.getBounds());
+        fetch(`/api/vehicle_history/${vehicle_id}`)
+            .then(response => response.json())
+            .then(data => {
+                var table = document.getElementById('history-table');
+                var latlngs = data.map(point => [point.latitude, point.longitude]);
 
-        latlngs.forEach((latlng, index) => {
-            L.marker(latlng).addTo(map)
-                .bindPopup(`<b>${vehicle_history[index].timestamp}</b>`);
-        });
+                var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
+                map.fitBounds(polyline.getBounds());
+
+                data.forEach(point => {
+                    var row = table.insertRow();
+                    row.insertCell(0).textContent = point.timestamp;
+                    row.insertCell(1).textContent = point.latitude;
+                    row.insertCell(2).textContent = point.longitude;
+                    row.insertCell(3).textContent = point.temp_acqua;
+                    row.insertCell(4).textContent = point.pressione_olio;
+                    row.insertCell(5).textContent = point.voltaggio_batteria;
+                    row.insertCell(6).textContent = point.contaore_motore;
+                    row.insertCell(7).textContent = point.errori.join(', ');
+
+                    L.marker([point.latitude, point.longitude]).addTo(map)
+                        .bindPopup(`<b>${point.timestamp}</b>`);
+                });
+            });
+
+        // Inserire il grafico generato dal server
+        var graphData = "{{ graph_data }}";
+        var ctx = document.getElementById('statsChart').getContext('2d');
+        var img = new Image();
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0);
+        };
+        img.src = 'data:image/png;base64,' + graphData;
+
     </script>
 </body>
 </html>
