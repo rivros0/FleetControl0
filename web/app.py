@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import matplotlib.pyplot as plt
+import numpy as np
 from io import BytesIO
 import base64
 
@@ -63,12 +64,18 @@ def get_vehicle_history(vehicle_id):
 
 # Funzione per generare grafici
 def generate_chart(timestamps, values, title, ylabel):
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(12, 6))
     plt.plot(timestamps, values, marker='o')
     plt.xlabel('Timestamp')
     plt.ylabel(ylabel)
     plt.title(title)
     plt.xticks(rotation=45)
+    plt.grid(True)
+    
+    mean_value = np.mean(values)
+    plt.axhline(y=mean_value, color='r', linestyle='--', label=f'Media: {mean_value:.2f}')
+    plt.legend()
+    
     buffer = BytesIO()
     plt.savefig(buffer, format='png')
     buffer.seek(0)

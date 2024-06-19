@@ -27,8 +27,9 @@
             background-color: #f4f4f4;
         }
         .chart {
-            width: 90%;
+            width: 1200px; /* Larghezza fissa per il grafico */
             margin: 20px auto;
+            overflow-x: scroll; /* Abilita lo scorrimento orizzontale */
         }
         canvas {
             margin-top: 20px;
@@ -106,7 +107,7 @@
                 var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
                 map.fitBounds(polyline.getBounds());
 
-                data.forEach(point => {
+                data.forEach((point, index) => {
                     var row = table.insertRow();
                     row.insertCell(0).textContent = point.timestamp;
                     row.insertCell(1).textContent = point.latitude;
@@ -117,8 +118,19 @@
                     row.insertCell(6).textContent = point.contaore_motore;
                     row.insertCell(7).textContent = point.errori.join(', ');
 
-                    L.marker([point.latitude, point.longitude]).addTo(map)
-                        .bindPopup(`<b>${point.timestamp}</b>`);
+                    var arrow = L.icon({
+                        iconUrl: 'https://leafletjs.com/examples/custom-icons/arrow-icon.png', // Icona di freccia
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12],
+                        popupAnchor: [0, -12]
+                    });
+
+                    var marker = L.marker([point.latitude, point.longitude], {icon: arrow}).addTo(map);
+                    if (index === data.length - 1) {
+                        marker.bindPopup(`<b>Ultima posizione</b><br>${point.timestamp}`).openPopup();
+                    } else {
+                        marker.bindPopup(`<b>${point.timestamp}</b>`);
+                    }
                 });
             });
     </script>
