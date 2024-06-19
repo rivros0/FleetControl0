@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, jsonify
 import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
+from datetime import datetime
+from pytz import timezone
 from OBDerrors import error_codes  # Importa il dizionario degli errori
 
 app = Flask(__name__)
@@ -9,6 +11,13 @@ app = Flask(__name__)
 # Memorizzare le posizioni attuali in una struttura in memoria
 current_positions = {}
 vehicle_histories = {}
+
+# Funzione per convertire timestamp in fuso orario di Roma
+def convert_to_rome_timezone(timestamp):
+    utc_time = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+    utc_time = utc_time.replace(tzinfo=timezone('UTC'))
+    rome_time = utc_time.astimezone(timezone('Europe/Rome'))
+    return rome_time.strftime('%Y-%m-%d %H:%M:%S')
 
 # Endpoint per aggiornare la posizione del veicolo
 @app.route('/api/update_location', methods=['POST'])
@@ -74,40 +83,41 @@ def vehicle_history(vehicle_id):
         return "Veicolo non trovato", 404
 
     data = vehicle_histories[vehicle_id]
-    timestamps = [entry['timestamp'] for entry in data]
+    timestamps = [convert_to_rome_timezone(entry['timestamp']) for entry in data]
     temp_acqua_data = [entry['temp_acqua'] for entry in data]
     pressione_olio_data = [entry['pressione_olio'] for entry in data]
     voltaggio_batteria_data = [entry['voltaggio_batteria'] for entry in data]
     contaore_motore_data = [entry['contaore_motore'] for entry in data]
     errori_data = [entry['errori'] for entry in data]
 
-    # Creazione del grafico con Matplotlib
-    plt.figure(figsize=(10, 6))
-    plt.plot(timestamps, temp_acqua_data, marker='o', label='Temperatura Acqua', color='blue')
-    plt.plot(timestamps, pressione_olio_data, marker='o', label='Pressione Olio', color='green')
-    plt.plot(timestamps, voltaggio_batteria_data, marker='o', label='Voltaggio Batteria', color='orange')
-    plt.plot(timestamps, contaore_motore_data, marker='o', label='Contaore Motore', color='red')
-    plt.xlabel('Timestamp')
-    plt.ylabel('Valori')
-    plt.title(f'Statistiche per il veicolo {vehicle_id}')
-    plt.xticks(rotation=45)
-    plt.legend()
-    plt.grid(True)  # Aggiungi una griglia sullo sfondo del grafico
+    # Creazione dei quattro grafici con Matplotlib
+    fig, axs = plt.subplots(4, 1, figsize=(12, 16))
+
+    axs[0].plot(timestamps, temp_acqua_data, marker='o', label='Temperatura Acqua', color='blue')
+    axs[0].set_ylabel('Temperatura Acqua')
+    axs[0].set_title(f'Statistiche per il veicolo {vehicle_id}')
+    axs[0].grid(True)
+    axs[0].legend()
+
+    axs[1].plot(timestamps, pressione_olio_data, marker='o', label='Pressione Olio', color='green')
+    axs[1].set_ylabel('Pressione Olio')
+    axs[1].grid(True)
+    axs[1].legend()
+
+    axs[2].plot(timestamps, voltaggio_batteria_data, marker='o', label='Voltaggio Batteria', color='orange')
+    axs[2].set_ylabel('Voltaggio Batteria')
+    axs[2].grid(True)
+    axs[2].legend()
+
+    axs[3].plot(timestamps, contaore_motore_data, marker='o', label='Contaore Motore', color='red')
+    axs[3].set_ylabel('Contaore Motore')
+    axs[3].set_xlabel('Timestamp')
+    axs[3].grid(True)
+    axs[3].legend()
+
     plt.tight_layout()
 
-    # Calcola il valore medio dei dati
-    avg_temp_acqua = sum(temp_acqua_data) / len(temp_acqua_data)
-    avg_pressione_olio = sum(pressione_olio_data) / len(pressione_olio_data)
-    avg_voltaggio_batteria = sum(voltaggio_batteria_data) / len(voltaggio_batteria_data)
-    avg_contaore_motore = sum(contaore_motore_data) / len(contaore_motore_data)
-
-    # Aggiungi informazioni medie al grafico
-    plt.axhline(y=avg_temp_acqua, color='blue', linestyle='--', label=f'Media Temperatura Acqua: {avg_temp_acqua:.2f}')
-    plt.axhline(y=avg_pressione_olio, color='green', linestyle='--', label=f'Media Pressione Olio: {avg_pressione_olio:.2f}')
-    plt.axhline(y=avg_voltaggio_batteria, color='orange', linestyle='--', label=f'Media Voltaggio Batteria: {avg_voltaggio_batteria:.2f}')
-    plt.axhline(y=avg_contaore_motore, color='red', linestyle='--', label=f'Media Contaore Motore: {avg_contaore_motore:.2f}')
-
-    # Salvataggio del grafico in formato base64 per l'inclusione nella pagina HTML
+    # Salvataggio dei grafici in formato base64 per l'inclusione nella pagina HTML
     buffer = BytesIO()
     plt.savefig(buffer, format='png')
     buffer.seek(0)
