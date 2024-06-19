@@ -61,6 +61,21 @@ def get_current_locations():
 def get_vehicle_history(vehicle_id):
     return jsonify(vehicle_histories.get(vehicle_id, []))
 
+# Funzione per generare grafici
+def generate_chart(timestamps, values, title, ylabel):
+    plt.figure(figsize=(10, 6))
+    plt.plot(timestamps, values, marker='o')
+    plt.xlabel('Timestamp')
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.xticks(rotation=45)
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    graph_data = base64.b64encode(buffer.getvalue()).decode()
+    plt.close()
+    return graph_data
+
 # Pagina principale per visualizzare le posizioni dei veicoli
 @app.route('/')
 def index():
@@ -79,27 +94,21 @@ def vehicle_history(vehicle_id):
     voltaggio_batteria_data = [entry['voltaggio_batteria'] for entry in data]
     contaore_motore_data = [entry['contaore_motore'] for entry in data]
 
-    # Creazione del grafico con Matplotlib
-    plt.figure(figsize=(10, 6))
-    plt.plot(timestamps, temp_acqua_data, marker='o', label='Temperatura Acqua', color='blue')
-    plt.plot(timestamps, pressione_olio_data, marker='o', label='Pressione Olio', color='green')
-    plt.plot(timestamps, voltaggio_batteria_data, marker='o', label='Voltaggio Batteria', color='orange')
-    plt.plot(timestamps, contaore_motore_data, marker='o', label='Contaore Motore', color='red')
-    plt.xlabel('Timestamp')
-    plt.ylabel('Valori')
-    plt.title(f'Statistiche per il veicolo {vehicle_id}')
-    plt.xticks(rotation=45)
-    plt.legend()
+    # Generare grafici per ciascun tipo di dato
+    temp_acqua_chart = generate_chart(timestamps, temp_acqua_data, 'Temperatura Acqua', 'Gradi Celsius')
+    pressione_olio_chart = generate_chart(timestamps, pressione_olio_data, 'Pressione Olio', 'Pascal')
+    voltaggio_batteria_chart = generate_chart(timestamps, voltaggio_batteria_data, 'Voltaggio Batteria', 'Volt')
+    contaore_motore_chart = generate_chart(timestamps, contaore_motore_data, 'Contaore Motore', 'Ore')
 
-    # Salvataggio del grafico in formato base64 per l'inclusione nella pagina HTML
-    buffer = BytesIO()
-    plt.savefig(buffer, format='png')
-    buffer.seek(0)
-    graph_data = base64.b64encode(buffer.getvalue()).decode()
-
-    plt.close()
-
-    return render_template('vehicle_history.html', vehicle_id=vehicle_id, graph_data=graph_data)
+    return render_template(
+        'vehicle_history.html',
+        vehicle_id=vehicle_id,
+        temp_acqua_chart=temp_acqua_chart,
+        pressione_olio_chart=pressione_olio_chart,
+        voltaggio_batteria_chart=voltaggio_batteria_chart,
+        contaore_motore_chart=contaore_motore_chart,
+        vehicle_history=data
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)
