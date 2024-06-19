@@ -2,8 +2,6 @@ from flask import Flask, render_template, request, jsonify
 import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
-from datetime import datetime
-from pytz import timezone
 from OBDerrors import error_codes  # Importa il dizionario degli errori
 
 app = Flask(__name__)
@@ -12,12 +10,22 @@ app = Flask(__name__)
 current_positions = {}
 vehicle_histories = {}
 
-# Funzione per convertire timestamp in fuso orario di Roma
-def convert_to_rome_timezone(timestamp):
-    utc_time = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
-    utc_time = utc_time.replace(tzinfo=timezone('UTC'))
-    rome_time = utc_time.astimezone(timezone('Europe/Rome'))
-    return rome_time.strftime('%Y-%m-%d %H:%M:%S')
+# Funzione per generare grafico e restituire base64
+def generate_chart(timestamps, data, title, color):
+    plt.figure(figsize=(10, 6))
+    plt.plot(timestamps, data, marker='o', color=color)
+    plt.title(title)
+    plt.xlabel('Timestamp')
+    plt.ylabel('Value')
+    plt.xticks(rotation=45)
+    plt.grid(True)
+    plt.tight_layout()
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    plt.close()
+    return img_base64
 
 # Endpoint per aggiornare la posizione del veicolo
 @app.route('/api/update_location', methods=['POST'])
@@ -83,68 +91,29 @@ def vehicle_history(vehicle_id):
         return "Veicolo non trovato", 404
 
     data = vehicle_histories[vehicle_id]
-    timestamps = [convert_to_rome_timezone(entry['timestamp']) for entry in data]
+    timestamps = [entry['timestamp'] for entry in data]
     temp_acqua_data = [entry['temp_acqua'] for entry in data]
     pressione_olio_data = [entry['pressione_olio'] for entry in data]
     voltaggio_batteria_data = [entry['voltaggio_batteria'] for entry in data]
     contaore_motore_data = [entry['contaore_motore'] for entry in data]
-    errori_data = [entry['errori'] for entry in data]
 
-    # Creazione dei quattro grafici con Matplotlib
-    fig, axs = plt.subplots(4, 1, figsize=(12, 16))
+    # Generazione dei grafici
+    graph_temp_acqua = generate_chart(timestamps, temp_acqua_data, 'Temperatura Acqua', 'blue')
+    graph_pressione_olio = generate_chart(timestamps, pressione_olio_data, 'Pressione Olio', 'green')
+    graph_voltaggio_batteria = generate_chart(timestamps, voltaggio_batteria_data, 'Voltaggio Batteria', 'orange')
+    graph_contaore_motore = generate_chart(timestamps, contaore_motore_data, 'Contaore Motore', 'red')
 
-    axs[0].plot(timestamps, temp_acqua_data, marker='o', label='Temperatura Acqua', color='blue')
-    axs[0].set_ylabel('Temperatura Acqua')
-    axs[0].set_title(f'Statistiche per il veicolo {vehicle_id}')
-    axs[0].grid(True)
-    axs[0].legend()
+    # Latitudini e longitudini per la mappa
+    latlngs = [[entry['latitude'], entry['longitude']] for entry in data]
 
-    axs[1].plot(timestamps, pressione_olio_data, marker='o', label='Pressione Olio', color='green')
-    axs[1].set_ylabel('Pressione Olio')
-    axs[1].grid(True)
-    axs[1].legend()
+    return render_template('vehicle_history.html', 
+                           vehicle_id=vehicle_id, 
+                           data=data, 
+                           graph_temp_acqua=graph_temp_acqua,
+                           graph_pressione_olio=graph_pressione_olio,
+                           graph_voltaggio_batteria=graph_voltaggio_batteria,
+                           graph_contaore_motore=graph_contaore_motore,
+                           latlngs=latlngs)
 
-    axs[2].plot(timestamps, voltaggio_batteria_data, marker='o', label='Voltaggio Batteria', color='orange')
-    axs[2].set_ylabel('Voltaggio Batteria')
-    axs[2].grid(True)
-    axs[2].legend()
-
-    axs[3].plot(timestamps, contaore_motore_data, marker='o', label='Contaore Motore', color='red')
-    axs[3].set_ylabel('Contaore Motore')
-    axs[3].set_xlabel('Timestamp')
-    axs[3].grid(True)
-    axs[3].legend()
-
-    plt.tight_layout()
-
-    # Salvataggio dei grafici in formato base64 per l'inclusione nella pagina HTML
-    buffer = BytesIO()
-    plt.savefig(buffer, format='png')
-    buffer.seek(0)
-    graph_data = base64.b64encode(buffer.getvalue()).decode()
-    plt.close()
-
-    # Prepara le informazioni sugli errori per visualizzazione
-    error_descriptions = []
-    for errors in errori_data:
-        for error in errors:
-            if error in error_codes:
-                error_info = error_codes[error]
-                error_description = f"{error_info['category']} - {error_info['name']}: {error_info['description']}"
-                error_descriptions.append(error_description)
-
-    return render_template('vehicle_history.html', vehicle_id=vehicle_id, graph_data=graph_data, error_descriptions=error_descriptions)
-
-# Pagina di dettaglio di un errore
-@app.route('/error_detail/<error_code>')
-def error_detail(error_code):
-    # Trova l'errore con il codice specificato
-    error_info = error_codes.get(error_code)
-    if error_info:
-        return render_template('error_detail.html', error=error_info)
-    else:
-        return "Errore non trovato", 404
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
-
