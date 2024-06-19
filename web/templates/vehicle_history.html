@@ -36,21 +36,25 @@
             max-width: 100%;
             height: auto;
         }
-        .error-list {
-            margin-top: 20px;
-            font-size: 14px;
+        .error-link {
+            color: blue;
+            text-decoration: underline;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <h1>Storico Veicolo {{ vehicle_id }}</h1>
     <div id="map"></div>
+
+    <div id="charts-container" style="overflow-x: auto; white-space: nowrap;">
+        <canvas class="stats-chart" width="800" height="400"></canvas>
+    </div>
+
     <table>
         <thead>
             <tr>
                 <th>Timestamp</th>
-                <th>Latitudine</th>
-                <th>Longitudine</th>
                 <th>Temperatura Acqua</th>
                 <th>Pressione Olio</th>
                 <th>Voltaggio Batteria</th>
@@ -61,16 +65,6 @@
         <tbody id="history-table">
         </tbody>
     </table>
-    <canvas id="statsChart" width="800" height="400"></canvas>
-
-    <div class="error-list">
-        <h3>Errori:</h3>
-        <ul>
-            {% for error_description in error_descriptions %}
-                <li>{{ error_description }}</li>
-            {% endfor %}
-        </ul>
-    </div>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
@@ -94,22 +88,26 @@
                 data.forEach(point => {
                     var row = table.insertRow();
                     row.insertCell(0).textContent = point.timestamp;
-                    row.insertCell(1).textContent = point.latitude;
-                    row.insertCell(2).textContent = point.longitude;
-                    row.insertCell(3).textContent = point.temp_acqua;
-                    row.insertCell(4).textContent = point.pressione_olio;
-                    row.insertCell(5).textContent = point.voltaggio_batteria;
-                    row.insertCell(6).textContent = point.contaore_motore;
-                    row.insertCell(7).textContent = point.errori.join(', ');
+                    row.insertCell(1).textContent = point.temp_acqua;
+                    row.insertCell(2).textContent = point.pressione_olio;
+                    row.insertCell(3).textContent = point.voltaggio_batteria;
+                    row.insertCell(4).textContent = point.contaore_motore;
+
+                    // Aggiungi link agli errori
+                    var errorCell = row.insertCell(5);
+                    var errorLinks = point.errori.map(error => {
+                        return `<a class="error-link" href="/error_detail/${encodeURIComponent(error)}">${error}</a>`;
+                    });
+                    errorCell.innerHTML = errorLinks.join(', ');
 
                     L.marker([point.latitude, point.longitude]).addTo(map)
                         .bindPopup(`<b>${point.timestamp}</b>`);
                 });
             });
 
-        // Inserire il grafico generato dal server
+        // Inserire i grafici generati dal server
         var graphData = "{{ graph_data }}";
-        var ctx = document.getElementById('statsChart').getContext('2d');
+        var ctx = document.querySelector('.stats-chart').getContext('2d');
         var img = new Image();
         img.onload = function() {
             ctx.drawImage(img, 0, 0);

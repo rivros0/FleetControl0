@@ -1,5 +1,3 @@
-# app.py
-
 from flask import Flask, render_template, request, jsonify
 import matplotlib.pyplot as plt
 from io import BytesIO
@@ -126,6 +124,16 @@ def vehicle_history(vehicle_id):
                 error_descriptions.append(error_description)
 
     return render_template('vehicle_history.html', vehicle_id=vehicle_id, graph_data=graph_data, error_descriptions=error_descriptions)
+
+# Pagina di dettaglio di un errore
+@app.route('/error_detail/<error_code>')
+def error_detail(error_code):
+    # Trova l'errore con il codice specificato
+    error_info = error_codes.get(error_code)
+    if error_info:
+        return render_template('error_detail.html', error=error_info)
+    else:
+        return "Errore non trovato", 404
 
 if __name__ == "__main__":
     app.run(debug=True)

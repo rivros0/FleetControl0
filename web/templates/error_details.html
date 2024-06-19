@@ -1,0 +1,70 @@
+<!-- error_detail.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <h1>Error Details</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Error Code</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody id="error-details">
+            <!-- Dati degli errori verranno inseriti qui dinamicamente -->
+        </tbody>
+    </table>
+
+    <script>
+        // Recupera il parametro dell'errore dall'URL
+        var error_code = decodeURIComponent(window.location.pathname.split('/').pop());
+
+        fetch(`/api/error_details/${error_code}`)
+            .then(response => response.json())
+            .then(data => {
+                var tableBody = document.getElementById('error-details');
+                data.forEach(entry => {
+                    var row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${entry.error_code}</td>
+                        <td>${entry.category}</td>
+                        <td>${entry.description}</td>
+                        <td>${entry.timestamp}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Errore nel recupero dei dettagli dell\'errore:', error);
+            });
+    </script>
+
+</body>
+</html>
