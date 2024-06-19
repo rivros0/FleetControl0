@@ -1,11 +1,9 @@
-<!-- vehicle_history.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle History</title>
+    <title>Vehicle History - {{ vehicle_id }}</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         body {
@@ -28,11 +26,11 @@
         th {
             background-color: #f4f4f4;
         }
-        canvas {
+        .chart-container {
             margin-top: 20px;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
+            text-align: center;
+        }
+        canvas {
             max-width: 100%;
             height: auto;
         }
@@ -44,11 +42,20 @@
     </style>
 </head>
 <body>
-    <h1>Storico Veicolo {{ vehicle_id }}</h1>
+    <h1>Vehicle History - {{ vehicle_id }}</h1>
     <div id="map"></div>
 
-    <div id="charts-container" style="overflow-x: auto; white-space: nowrap;">
-        <canvas class="stats-chart" width="800" height="400"></canvas>
+    <div class="chart-container">
+        <canvas id="chartTempAcqua" width="800" height="400"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="chartPressioneOlio" width="800" height="400"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="chartVoltaggioBatteria" width="800" height="400"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="chartContaoreMotore" width="800" height="400"></canvas>
     </div>
 
     <table>
@@ -63,10 +70,12 @@
             </tr>
         </thead>
         <tbody id="history-table">
+            <!-- Le righe della tabella verranno popolate dinamicamente tramite JavaScript -->
         </tbody>
     </table>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         var map = L.map('map').setView([41.9028, 12.4964], 6);
 
@@ -85,9 +94,21 @@
                 var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
                 map.fitBounds(polyline.getBounds());
 
+                var chartLabels = data.map(point => point.timestamp);
+                var chartTempAcquaData = data.map(point => point.temp_acqua);
+                var chartPressioneOlioData = data.map(point => point.pressione_olio);
+                var chartVoltaggioBatteriaData = data.map(point => point.voltaggio_batteria);
+                var chartContaoreMotoreData = data.map(point => point.contaore_motore);
+
+                // Inserimento dati nei grafici
+                createChart('chartTempAcqua', 'Temperatura Acqua', chartLabels, chartTempAcquaData, 'blue');
+                createChart('chartPressioneOlio', 'Pressione Olio', chartLabels, chartPressioneOlioData, 'green');
+                createChart('chartVoltaggioBatteria', 'Voltaggio Batteria', chartLabels, chartVoltaggioBatteriaData, 'orange');
+                createChart('chartContaoreMotore', 'Contaore Motore', chartLabels, chartContaoreMotoreData, 'red');
+
                 data.forEach(point => {
                     var row = table.insertRow();
-                    row.insertCell(0).textContent = point.timestamp;
+                    row.insertCell(0).textContent = formatDate(point.timestamp);
                     row.insertCell(1).textContent = point.temp_acqua;
                     row.insertCell(2).textContent = point.pressione_olio;
                     row.insertCell(3).textContent = point.voltaggio_batteria;
@@ -101,18 +122,50 @@
                     errorCell.innerHTML = errorLinks.join(', ');
 
                     L.marker([point.latitude, point.longitude]).addTo(map)
-                        .bindPopup(`<b>${point.timestamp}</b>`);
+                        .bindPopup(`<b>${formatDate(point.timestamp)}</b>`);
                 });
             });
 
-        // Inserire i grafici generati dal server
-        var graphData = "{{ graph_data }}";
-        var ctx = document.querySelector('.stats-chart').getContext('2d');
-        var img = new Image();
-        img.onload = function() {
-            ctx.drawImage(img, 0, 0);
-        };
-        img.src = 'data:image/png;base64,' + graphData;
+        function createChart(canvasId, label, labels, data, color) {
+            var ctx = document.getElementById(canvasId).getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels.map(formatDate),
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: color,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                tooltipFormat: 'll HH:mm',
+                                unit: 'day'
+                            },
+                            ticks: {
+                                maxRotation: 0
+                            }
+                        },
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function formatDate(timestamp) {
+            var date = new Date(timestamp);
+            return date.toLocaleString('it-IT', { timeZone: 'Europe/Rome' });
+        }
 
     </script>
 </body>

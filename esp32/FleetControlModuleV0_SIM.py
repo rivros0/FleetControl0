@@ -16,7 +16,7 @@ while True:
         pressione_olio = random.uniform(20.0, 80.0)  # Valore di esempio per la pressione dell'olio
         voltaggio_batteria = random.uniform(11.5, 13.5)  # Valore di esempio per il voltaggio della batteria
         contaore_motore = random.randint(1000, 5000)  # Valore di esempio per il contaore del motore
-        errori = ['P0100', 'P1101']  # Lista di errori eventuali
+        errori = ['P1101']  # Lista di errori eventuali
 
         data = {
             'vehicle_id': vehicle_id,
