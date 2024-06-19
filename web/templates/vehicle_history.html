@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle History</title>
+    <title>Storico Veicolo {{ vehicle_id }}</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         body {
@@ -26,6 +26,10 @@
         th {
             background-color: #f4f4f4;
         }
+        .chart {
+            width: 90%;
+            margin: 20px auto;
+        }
         canvas {
             margin-top: 20px;
             display: block;
@@ -39,6 +43,22 @@
 <body>
     <h1>Storico Veicolo {{ vehicle_id }}</h1>
     <div id="map"></div>
+    <div class="chart">
+        <h2>Temperatura Acqua</h2>
+        <img src="data:image/png;base64,{{ temp_acqua_chart }}" alt="Temperatura Acqua">
+    </div>
+    <div class="chart">
+        <h2>Pressione Olio</h2>
+        <img src="data:image/png;base64,{{ pressione_olio_chart }}" alt="Pressione Olio">
+    </div>
+    <div class="chart">
+        <h2>Voltaggio Batteria</h2>
+        <img src="data:image/png;base64,{{ voltaggio_batteria_chart }}" alt="Voltaggio Batteria">
+    </div>
+    <div class="chart">
+        <h2>Contaore Motore</h2>
+        <img src="data:image/png;base64,{{ contaore_motore_chart }}" alt="Contaore Motore">
+    </div>
     <table>
         <thead>
             <tr>
@@ -53,10 +73,20 @@
             </tr>
         </thead>
         <tbody id="history-table">
+            {% for entry in vehicle_history %}
+            <tr>
+                <td>{{ entry.timestamp }}</td>
+                <td>{{ entry.latitude }}</td>
+                <td>{{ entry.longitude }}</td>
+                <td>{{ entry.temp_acqua }}</td>
+                <td>{{ entry.pressione_olio }}</td>
+                <td>{{ entry.voltaggio_batteria }}</td>
+                <td>{{ entry.contaore_motore }}</td>
+                <td>{{ entry.errori | join(', ') }}</td>
+            </tr>
+            {% endfor %}
         </tbody>
     </table>
-    <canvas id="statsChart" width="800" height="400"></canvas>
-
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([41.9028, 12.4964], 6);
@@ -91,16 +121,6 @@
                         .bindPopup(`<b>${point.timestamp}</b>`);
                 });
             });
-
-        // Inserire il grafico generato dal server
-        var graphData = "{{ graph_data }}";
-        var ctx = document.getElementById('statsChart').getContext('2d');
-        var img = new Image();
-        img.onload = function() {
-            ctx.drawImage(img, 0, 0);
-        };
-        img.src = 'data:image/png;base64,' + graphData;
-
     </script>
 </body>
 </html>
