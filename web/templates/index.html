@@ -1,10 +1,11 @@
+<!-- index.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fleet Control</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <title>Vehicle Tracking System</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,37 +14,12 @@
             height: 60vh;
             width: 100%;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
     </style>
 </head>
 <body>
-    <h1>Ultima Posizione Veicoli</h1>
+    <h1>Vehicle Tracking System</h1>
     <div id="map"></div>
-    <table>
-        <thead>
-            <tr>
-                <th>ID Veicolo</th>
-                <th>Latitudine</th>
-                <th>Longitudine</th>
-                <th>Ultimo Aggiornamento</th>
-                <th>Dettagli</th>
-            </tr>
-        </thead>
-        <tbody id="vehicle-table">
-        </tbody>
-    </table>
+
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([41.9028, 12.4964], 6);
@@ -55,24 +31,12 @@
         fetch('/api/current_locations')
             .then(response => response.json())
             .then(data => {
-                var table = document.getElementById('vehicle-table');
-                
                 data.forEach(vehicle => {
-                    var row = table.insertRow();
-                    row.insertCell(0).textContent = vehicle.vehicle_id;
-                    row.insertCell(1).textContent = vehicle.latitude;
-                    row.insertCell(2).textContent = vehicle.longitude;
-                    row.insertCell(3).textContent = vehicle.last_seen;
-                    var linkCell = row.insertCell(4);
-                    var link = document.createElement('a');
-                    link.href = `/vehicle_history/${vehicle.vehicle_id}`;
-                    link.textContent = 'Dettagli';
-                    linkCell.appendChild(link);
-
                     L.marker([vehicle.latitude, vehicle.longitude]).addTo(map)
-                        .bindPopup(`<b>${vehicle.vehicle_id}</b><br>Ultimo aggiornamento: ${vehicle.last_seen}<br><a href="/vehicle_history/${vehicle.vehicle_id}">Dettagli</a>`);
+                        .bindPopup(`<b>${vehicle.vehicle_id}</b><br>Lat: ${vehicle.latitude}<br>Lon: ${vehicle.longitude}`);
                 });
             });
+
     </script>
 </body>
 </html>
