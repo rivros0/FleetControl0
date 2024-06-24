@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle History - {{ vehicle_id }}</title>
+    <title>Vehicle History</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         body {
@@ -26,67 +26,23 @@
         th {
             background-color: #f4f4f4;
         }
-        .chart-container {
-            margin-top: 20px;
-            text-align: center;
-        }
-        canvas {
-            max-width: 100%;
-            height: auto;
-        }
-        .error-link {
-            color: blue;
-            text-decoration: underline;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
-    <h1>Vehicle History - {{ vehicle_id }}</h1>
+    <h1>Storico Veicolo {{ vehicle_id }}</h1>
     <div id="map"></div>
-
-    <div class="chart-container">
-        <img src="data:image/png;base64,{{ graph_temp_acqua }}" alt="Temperatura Acqua">
-    </div>
-    <div class="chart-container">
-        <img src="data:image/png;base64,{{ graph_pressione_olio }}" alt="Pressione Olio">
-    </div>
-    <div class="chart-container">
-        <img src="data:image/png;base64,{{ graph_voltaggio_batteria }}" alt="Voltaggio Batteria">
-    </div>
-    <div class="chart-container">
-        <img src="data:image/png;base64,{{ graph_contaore_motore }}" alt="Contaore Motore">
-    </div>
-
+    <iframe src="http://your-grafana-server/d-solo/your-dashboard-id/your-panel-id?orgId=1&refresh=5s" width="100%" height="400" frameborder="0"></iframe>
     <table>
         <thead>
             <tr>
                 <th>Timestamp</th>
-                <th>Temperatura Acqua</th>
-                <th>Pressione Olio</th>
-                <th>Voltaggio Batteria</th>
-                <th>Contaore Motore</th>
-                <th>Errori</th>
+                <th>Latitudine</th>
+                <th>Longitudine</th>
             </tr>
         </thead>
         <tbody id="history-table">
-            {% for point in data %}
-            <tr>
-                <td>{{ point.timestamp }}</td>
-                <td>{{ point.temp_acqua }}</td>
-                <td>{{ point.pressione_olio }}</td>
-                <td>{{ point.voltaggio_batteria }}</td>
-                <td>{{ point.contaore_motore }}</td>
-                <td>
-                    {% for error in point.errori %}
-                    <a class="error-link" href="/error_detail/{{ error }}">{{ error }}</a>{% if not loop.last %}, {% endif %}
-                    {% endfor %}
-                </td>
-            </tr>
-            {% endfor %}
         </tbody>
     </table>
-
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([41.9028, 12.4964], 6);
@@ -95,14 +51,27 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        var latlngs = {{ latlngs | safe }};
-        var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
-        map.fitBounds(polyline.getBounds());
+        var vehicle_id = "{{ vehicle_id }}";
 
-        latlngs.forEach(function(latlng, index) {
-            L.marker(latlng).addTo(map)
-                .bindPopup(`<b>${new Date("{{ data[index].timestamp }}").toLocaleString('it-IT', { timeZone: 'Europe/Rome' })}</b>`);
-        });
+        fetch(`/api/vehicle_history/${vehicle_id}`)
+            .then(response => response.json())
+            .then(data => {
+                var table = document.getElementById('history-table');
+                var latlngs = data.map(point => [point.latitude, point.longitude]);
+
+                var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
+                map.fitBounds(polyline.getBounds());
+
+                data.forEach(point => {
+                    var row = table.insertRow();
+                    row.insertCell(0).textContent = point.timestamp;
+                    row.insertCell(1).textContent = point.latitude;
+                    row.insertCell(2).textContent = point.longitude;
+
+                    L.marker([point.latitude, point.longitude]).addTo(map)
+                        .bindPopup(`<b>${point.timestamp}</b>`);
+                });
+            });
     </script>
 </body>
 </html>
