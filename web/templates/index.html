@@ -38,6 +38,7 @@
                 <th>Latitudine</th>
                 <th>Longitudine</th>
                 <th>Ultimo Aggiornamento</th>
+                <th>Dettagli</th>
             </tr>
         </thead>
         <tbody id="vehicle-table">
@@ -62,9 +63,14 @@
                     row.insertCell(1).textContent = vehicle.latitude;
                     row.insertCell(2).textContent = vehicle.longitude;
                     row.insertCell(3).textContent = vehicle.last_seen;
-                    
+                    var linkCell = row.insertCell(4);
+                    var link = document.createElement('a');
+                    link.href = `/vehicle_history/${vehicle.vehicle_id}`;
+                    link.textContent = 'Dettagli';
+                    linkCell.appendChild(link);
+
                     L.marker([vehicle.latitude, vehicle.longitude]).addTo(map)
-                        .bindPopup(`<b>${vehicle.vehicle_id}</b><br>Ultimo aggiornamento: ${vehicle.last_seen}`);
+                        .bindPopup(`<b>${vehicle.vehicle_id}</b><br>Ultimo aggiornamento: ${vehicle.last_seen}<br><a href="/vehicle_history/${vehicle.vehicle_id}">Dettagli</a>`);
                 });
             });
     </script>
