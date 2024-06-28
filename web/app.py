@@ -128,5 +128,7 @@ def vehicle_history(vehicle_id):
     vehicle_data = [d for d in data if d['vehicle_id'] == vehicle_id]
     return render_template('vehicle_history.html', vehicle_id=vehicle_id, vehicle_data=vehicle_data)
 
+#suca
+
 if __name__ == '__main__':
     app.run(debug=True)
