@@ -1,11 +1,9 @@
-<!-- vehicle_history.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle History - {{ vehicle_id }}</title>
+    <title>Vehicle History</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         body {
@@ -14,6 +12,16 @@
         #map {
             height: 60vh;
             width: 100%;
+        }
+        .chart-container {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .chart {
+            width: 48%;
+            margin-bottom: 20px;
         }
         table {
             width: 100%;
@@ -28,33 +36,35 @@
         th {
             background-color: #f4f4f4;
         }
-        canvas {
-            margin-top: 20px;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            max-width: 100%;
-            height: auto;
-        }
-        .error-link {
-            color: blue;
-            text-decoration: underline;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
-    <h1>Vehicle History - {{ vehicle_id }}</h1>
+    <h1>Storico Veicolo {{ vehicle_id }}</h1>
     <div id="map"></div>
-
-    <div id="charts-container" style="overflow-x: auto; white-space: nowrap;">
-        <canvas class="stats-chart" width="800" height="400"></canvas>
+    <div class="chart-container">
+        <div class="chart">
+            <h2>Temperatura Acqua</h2>
+            <img src="{{ url_for('static', filename='temp_acqua_chart.png') }}" alt="Grafico Temperatura Acqua">
+        </div>
+        <div class="chart">
+            <h2>Pressione Olio</h2>
+            <img src="{{ url_for('static', filename='pressione_olio_chart.png') }}" alt="Grafico Pressione Olio">
+        </div>
+        <div class="chart">
+            <h2>Voltaggio Batteria</h2>
+            <img src="{{ url_for('static', filename='voltaggio_batteria_chart.png') }}" alt="Grafico Voltaggio Batteria">
+        </div>
+        <div class="chart">
+            <h2>Contaore Motore</h2>
+            <img src="{{ url_for('static', filename='contaore_motore_chart.png') }}" alt="Grafico Contaore Motore">
+        </div>
     </div>
-
     <table>
         <thead>
             <tr>
                 <th>Timestamp</th>
+                <th>Latitudine</th>
+                <th>Longitudine</th>
                 <th>Temperatura Acqua</th>
                 <th>Pressione Olio</th>
                 <th>Voltaggio Batteria</th>
@@ -62,10 +72,21 @@
                 <th>Errori</th>
             </tr>
         </thead>
-        <tbody id="history-table">
+        <tbody>
+            {% for record in vehicle_data %}
+            <tr>
+                <td>{{ record.timestamp }}</td>
+                <td>{{ record.latitude }}</td>
+                <td>{{ record.longitude }}</td>
+                <td>{{ record.temp_acqua }}</td>
+                <td>{{ record.pressione_olio }}</td>
+                <td>{{ record.voltaggio_batteria }}</td>
+                <td>{{ record.contaore_motore }}</td>
+                <td>{{ record.errori }}</td>
+            </tr>
+            {% endfor %}
         </tbody>
     </table>
-
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([41.9028, 12.4964], 6);
@@ -74,46 +95,11 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        var vehicle_id = "{{ vehicle_id }}";
-
-        fetch(`/api/vehicle_history/${vehicle_id}`)
-            .then(response => response.json())
-            .then(data => {
-                var table = document.getElementById('history-table');
-                var latlngs = data.map(point => [point.latitude, point.longitude]);
-
-                var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
-                map.fitBounds(polyline.getBounds());
-
-                data.forEach(point => {
-                    var row = table.insertRow();
-                    row.insertCell(0).textContent = point.timestamp;
-                    row.insertCell(1).textContent = point.temp_acqua;
-                    row.insertCell(2).textContent = point.pressione_olio;
-                    row.insertCell(3).textContent = point.voltaggio_batteria;
-                    row.insertCell(4).textContent = point.contaore_motore;
-
-                    // Aggiungi link agli errori
-                    var errorCell = row.insertCell(5);
-                    var errorLinks = point.errori.map(error => {
-                        return `<a class="error-link" href="/error_detail/${encodeURIComponent(error)}">${error}</a>`;
-                    });
-                    errorCell.innerHTML = errorLinks.join(', ');
-
-                    L.marker([point.latitude, point.longitude]).addTo(map)
-                        .bindPopup(`<b>${point.timestamp}</b>`);
-                });
-            });
-
-        // Inserire i grafici generati dal server
-        var graphData = "{{ graph_data }}";
-        var ctx = document.querySelector('.stats-chart').getContext('2d');
-        var img = new Image();
-        img.onload = function() {
-            ctx.drawImage(img, 0, 0);
-        };
-        img.src = 'data:image/png;base64,' + graphData;
-
+        var vehicle_data = {{ vehicle_data|tojson }};
+        vehicle_data.forEach(record => {
+            L.marker([record.latitude, record.longitude]).addTo(map)
+                .bindPopup(`<b>${record.timestamp}</b><br>Lat: ${record.latitude}<br>Lng: ${record.longitude}`);
+        });
     </script>
 </body>
 </html>
