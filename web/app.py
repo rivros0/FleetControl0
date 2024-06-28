@@ -36,15 +36,16 @@ def current_locations():
 # Endpoint to update vehicle location
 @app.route('/api/update_location', methods=['POST'])
 def update_location():
-    vehicle_id = request.form['vehicle_id']
-    latitude = float(request.form['latitude'])
-    longitude = float(request.form['longitude'])
-    timestamp = request.form['timestamp']
-    temp_acqua = float(request.form['temp_acqua'])
-    pressione_olio = float(request.form['pressione_olio'])
-    voltaggio_batteria = float(request.form['voltaggio_batteria'])
-    contaore_motore = float(request.form['contaore_motore'])
-    errori = request.form['errori']
+    data = request.json
+    vehicle_id = data['vehicle_id']
+    latitude = float(data['latitude'])
+    longitude = float(data['longitude'])
+    timestamp = data['timestamp']
+    temp_acqua = float(data['temp_acqua'])
+    pressione_olio = float(data['pressione_olio'])
+    voltaggio_batteria = float(data['voltaggio_batteria'])
+    contaore_motore = float(data['contaore_motore'])
+    errori = data['errori']
 
     new_data = {
         'vehicle_id': vehicle_id,
@@ -62,7 +63,7 @@ def update_location():
     data.append(new_data)
     save_data(data)
 
-    return 'Position Updated', 200
+    return jsonify({'message': 'Position Updated'}), 200
 
 # Home page
 @app.route('/')

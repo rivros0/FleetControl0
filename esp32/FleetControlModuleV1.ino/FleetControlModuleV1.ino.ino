@@ -1,10 +1,9 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <TinyGPS++.h>
-#include <SoftwareSerial.h>
 
 // Configurazione WiFi
-const char* ssid = "ninophone ";
+const char* ssid = "ninophone";
 const char* password = "sapusapunette";
 
 // Configurazione server
@@ -15,11 +14,11 @@ const char* vehicle_id = "TestVolante";
 
 // Configurazione GPS
 TinyGPSPlus gps;
-SoftwareSerial ss(16, 17); // RX, TX
+HardwareSerial gpsSerial(1);
 
 void setup() {
   Serial.begin(115200);
-  ss.begin(9600);
+  gpsSerial.begin(9600, SERIAL_8N1, 16, 17); // RX=16, TX=17
 
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
@@ -36,8 +35,8 @@ void setup() {
 }
 
 void loop() {
-  while (ss.available() > 0) {
-    if (gps.encode(ss.read())) {
+  while (gpsSerial.available() > 0) {
+    if (gps.encode(gpsSerial.read())) {
       if (gps.location.isUpdated()) {
         sendGPSToServer();
       }
@@ -51,7 +50,7 @@ void sendGPSToServer() {
     HTTPClient http;
 
     http.begin(serverName);
-    http.addHeader("Content-Type", "application/json");
+    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
     // Dati da inviare (sostituire con valori reali)
     float latitude = gps.location.lat();
@@ -63,9 +62,18 @@ void sendGPSToServer() {
     unsigned long contaore_motore = 1200; // esempio
     int errori = 0; // esempio
 
-    String postData = "{\"vehicle_id\":\"" + String(vehicle_id) + "\",\"latitude\":" + String(latitude, 6) + ",\"longitude\":" + String(longitude, 6) +
-                      ",\"timestamp\":" + String(timestamp) + ",\"temp_acqua\":" +     String(temp_acqua, 2) + ",\"pressione_olio\":" + String(pressione_olio, 2) + ",\"voltaggio_batteria\":" + String(voltaggio_batteria, 2) +
-                      ",\"contaore_motore\":" + String(contaore_motore) + ",\"errori\":" + String(errori) + "}";
+    String postData = "vehicle_id=" + String(vehicle_id) +
+                      "&latitude=" + String(latitude, 6) +
+                      "&longitude=" + String(longitude, 6) +
+                      "&timestamp=" + String(timestamp) +
+                      "&temp_acqua=" + String(temp_acqua, 2) +
+                      "&pressione_olio=" + String(pressione_olio, 2) +
+                      "&voltaggio_batteria=" + String(voltaggio_batteria, 2) +
+                      "&contaore_motore=" + String(contaore_motore) +
+                      "&errori=" + String(errori);
+
+    Serial.println("Sending data:");
+    Serial.println(postData); // Stampa i dati per il debug
 
     int httpResponseCode = http.POST(postData);
 
@@ -83,4 +91,3 @@ void sendGPSToServer() {
     Serial.println("WiFi Disconnected");
   }
 }
-
