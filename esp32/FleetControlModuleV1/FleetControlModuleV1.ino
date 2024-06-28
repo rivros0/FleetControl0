@@ -16,31 +16,66 @@ const char* vehicle_id = "TestVolante";
 TinyGPSPlus gps;
 HardwareSerial gpsSerial(1);
 
+unsigned long previousMillis = 0; // Variabile per memorizzare il tempo precedente
+const long interval = 5000; // Intervallo di 5 secondi
+
 void setup() {
   Serial.begin(115200);
   gpsSerial.begin(9600, SERIAL_8N1, 16, 17); // RX=16, TX=17
 
-  // Connect to Wi-Fi
+  // Connessione al Wi-Fi
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.println("Connecting to WiFi...");
   }
   Serial.println("Connected to WiFi");
-
-  if (WiFi.status() == WL_CONNECTED) {
-    // Send initial data to the server after connecting to WiFi
-    sendGPSToServer();
-  }
 }
 
 void loop() {
+  // Leggi i dati dal GPS
   while (gpsSerial.available() > 0) {
-    if (gps.encode(gpsSerial.read())) {
-      if (gps.location.isUpdated()) {
-        sendGPSToServer();
-      }
+    gps.encode(gpsSerial.read());
+  }
+
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+
+    // Stampa lo stato del GPS e le coordinate attuali ogni 5 secondi
+    if (gps.location.isValid()) {
+      Serial.print("Latitude: ");
+      Serial.println(gps.location.lat(), 6);
+      Serial.print("Longitude: ");
+      Serial.println(gps.location.lng(), 6);
+    } else {
+      Serial.println("GPS location not valid.");
     }
+
+    if (gps.time.isValid()) {
+      Serial.print("Time: ");
+      Serial.print(gps.time.hour());
+      Serial.print(":");
+      Serial.print(gps.time.minute());
+      Serial.print(":");
+      Serial.println(gps.time.second());
+    } else {
+      Serial.println("GPS time not valid.");
+    }
+
+    if (gps.date.isValid()) {
+      Serial.print("Date: ");
+      Serial.print(gps.date.day());
+      Serial.print("/");
+      Serial.print(gps.date.month());
+      Serial.print("/");
+      Serial.println(gps.date.year());
+    } else {
+      Serial.println("GPS date not valid.");
+    }
+
+    // Invio dei dati al server
+    sendGPSToServer();
   }
 }
 
@@ -79,8 +114,8 @@ void sendGPSToServer() {
 
     if (httpResponseCode > 0) {
       String response = http.getString();
-      Serial.println(httpResponseCode);
-      Serial.println(response);
+      Serial.println("HTTP Response code: " + String(httpResponseCode));
+      Serial.println("Server response: " + response);
     } else {
       Serial.print("Error on sending POST: ");
       Serial.println(httpResponseCode);
