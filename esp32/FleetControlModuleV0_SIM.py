@@ -5,8 +5,6 @@ import random
 server_url = 'http://test0000.pythonanywhere.com/api/update_location'  # URL del server Flask hostato su PythonAnywhere
 vehicle_ids = ['Punto', 'Panda', 'CarroArmatoSovietico']
 
-
-
 while True:
     for vehicle_id in vehicle_ids:
         latitude = random.uniform(38.0, 42.0)
@@ -16,7 +14,7 @@ while True:
         pressione_olio = random.uniform(20.0, 80.0)  # Valore di esempio per la pressione dell'olio
         voltaggio_batteria = random.uniform(11.5, 13.5)  # Valore di esempio per il voltaggio della batteria
         contaore_motore = random.randint(1000, 5000)  # Valore di esempio per il contaore del motore
-        errori = ['P1101']  # Lista di errori eventuali
+        errori = 'P1101'  # Errori come stringa
 
         data = {
             'vehicle_id': vehicle_id,
@@ -31,8 +29,8 @@ while True:
         }
 
         try:
-            response = requests.post(server_url, data=data)
-            response.raise_for_status()  # Raise an error for bad status codes
+            response = requests.post(server_url, json=data)
+            response.raise_for_status()  # Solleva un'eccezione per codici di stato HTTP errati
             print(f"Dati inviati per {vehicle_id}: {data}")
         except requests.exceptions.RequestException as e:
             print(f"Errore nell'invio dei dati per {vehicle_id}: {e}")
