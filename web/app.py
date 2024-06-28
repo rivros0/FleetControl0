@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 app = Flask(__name__)
 
 DATA_FILE = 'data/vehicle_data.json'
+ERROR_FILE = 'data/error_data.json'
 
 # Ensure the data directory exists
 if not os.path.exists('data'):
@@ -16,15 +17,30 @@ if not os.path.isfile(DATA_FILE):
     with open(DATA_FILE, 'w') as f:
         json.dump([], f)
 
+# Initialize the error data file if it does not exist
+if not os.path.isfile(ERROR_FILE):
+    with open(ERROR_FILE, 'w') as f:
+        json.dump({}, f)
+
 # Load data from the JSON file
 def load_data():
     with open(DATA_FILE, 'r') as f:
+        return json.load(f)
+
+# Load error data from the JSON file
+def load_error_data():
+    with open(ERROR_FILE, 'r') as f:
         return json.load(f)
 
 # Save data to the JSON file
 def save_data(data):
     with open(DATA_FILE, 'w') as f:
         json.dump(data, f, indent=4)
+
+# Save error data to the JSON file
+def save_error_data(error_data):
+    with open(ERROR_FILE, 'w') as f:
+        json.dump(error_data, f, indent=4)
 
 # Endpoint to get current vehicle locations
 @app.route('/api/current_locations')
@@ -67,6 +83,18 @@ def update_location():
     data = load_data()
     data.append(new_data)
     save_data(data)
+
+    # Update error data
+    error_data = load_error_data()
+    if errori not in error_data:
+        error_data[errori] = {
+            'category': 'Generic Error',
+            'name': 'Unknown Error',
+            'description': 'An unknown error has occurred.',
+            'timestamps': []
+        }
+    error_data[errori]['timestamps'].append(timestamp)
+    save_error_data(error_data)
 
     return jsonify({'message': 'Position Updated'}), 200
 
