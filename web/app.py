@@ -36,16 +36,21 @@ def current_locations():
 # Endpoint to update vehicle location
 @app.route('/api/update_location', methods=['POST'])
 def update_location():
-    data = request.json
-    vehicle_id = data['vehicle_id']
-    latitude = float(data['latitude'])
-    longitude = float(data['longitude'])
-    timestamp = data['timestamp']
-    temp_acqua = float(data['temp_acqua'])
-    pressione_olio = float(data['pressione_olio'])
-    voltaggio_batteria = float(data['voltaggio_batteria'])
-    contaore_motore = float(data['contaore_motore'])
-    errori = data['errori']
+    content_type = request.headers.get('Content-Type')
+    if content_type == 'application/json':
+        data = request.json
+    else:
+        data = request.form.to_dict()
+
+    vehicle_id = data.get('vehicle_id')
+    latitude = float(data.get('latitude', 0))
+    longitude = float(data.get('longitude', 0))
+    timestamp = data.get('timestamp', 0)
+    temp_acqua = float(data.get('temp_acqua', 0))
+    pressione_olio = float(data.get('pressione_olio', 0))
+    voltaggio_batteria = float(data.get('voltaggio_batteria', 0))
+    contaore_motore = float(data.get('contaore_motore', 0))
+    errori = data.get('errori', 0)
 
     new_data = {
         'vehicle_id': vehicle_id,
@@ -127,8 +132,6 @@ def vehicle_history(vehicle_id):
     data = load_data()
     vehicle_data = [d for d in data if d['vehicle_id'] == vehicle_id]
     return render_template('vehicle_history.html', vehicle_id=vehicle_id, vehicle_data=vehicle_data)
-
-#suca
 
 if __name__ == '__main__':
     app.run(debug=True)
