@@ -1,42 +1,131 @@
 from flask import Flask, render_template, request, jsonify
-from datetime import datetime
-from OBDerrors import error_codes  # Importa il dizionario degli errori
+import json
+import os
+import matplotlib.pyplot as plt
 
 app = Flask(__name__)
 
-# Memorizza lo storico degli errori in una struttura in memoria
-error_history = {}
+DATA_FILE = 'data/vehicle_data.json'
 
-# Funzione per aggiungere un errore allo storico
-def add_error_to_history(error_code, timestamp):
-    if error_code not in error_history:
-        error_history[error_code] = []
-    error_history[error_code].append(timestamp)
+# Ensure the data directory exists
+if not os.path.exists('data'):
+    os.makedirs('data')
 
-# Endpoint per aggiungere un errore
-@app.route('/api/add_error', methods=['POST'])
-def add_error():
-    error_code = request.form['error_code']
+# Initialize the data file if it does not exist
+if not os.path.isfile(DATA_FILE):
+    with open(DATA_FILE, 'w') as f:
+        json.dump([], f)
+
+# Load data from the JSON file
+def load_data():
+    with open(DATA_FILE, 'r') as f:
+        return json.load(f)
+
+# Save data to the JSON file
+def save_data(data):
+    with open(DATA_FILE, 'w') as f:
+        json.dump(data, f, indent=4)
+
+# Endpoint to get current vehicle locations
+@app.route('/api/current_locations')
+def current_locations():
+    data = load_data()
+    latest_locations = {d['vehicle_id']: d for d in sorted(data, key=lambda x: x['timestamp'], reverse=True)}
+    return jsonify(list(latest_locations.values()))
+
+# Endpoint to update vehicle location
+@app.route('/api/update_location', methods=['POST'])
+def update_location():
+    vehicle_id = request.form['vehicle_id']
+    latitude = float(request.form['latitude'])
+    longitude = float(request.form['longitude'])
     timestamp = request.form['timestamp']
+    temp_acqua = float(request.form['temp_acqua'])
+    pressione_olio = float(request.form['pressione_olio'])
+    voltaggio_batteria = float(request.form['voltaggio_batteria'])
+    contaore_motore = float(request.form['contaore_motore'])
+    errori = request.form['errori']
 
-    add_error_to_history(error_code, timestamp)
-    
-    return "Errore aggiunto con successo", 200
+    new_data = {
+        'vehicle_id': vehicle_id,
+        'latitude': latitude,
+        'longitude': longitude,
+        'timestamp': timestamp,
+        'temp_acqua': temp_acqua,
+        'pressione_olio': pressione_olio,
+        'voltaggio_batteria': voltaggio_batteria,
+        'contaore_motore': contaore_motore,
+        'errori': errori
+    }
 
-# Endpoint per ottenere i dettagli di un errore specifico
-@app.route('/error_detail/<error_code>', methods=['GET'])
-def error_detail(error_code):
-    if error_code not in error_codes:
-        return "Codice errore non trovato", 404
+    data = load_data()
+    data.append(new_data)
+    save_data(data)
 
-    if error_code not in error_history or len(error_history[error_code]) == 0:
-        timestamps = []
-    else:
-        timestamps = error_history[error_code]
+    return 'Position Updated', 200
 
-    error_info = error_codes[error_code]
+# Home page
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-    return render_template('error_detail.html', error_code=error_code, error_info=error_info, timestamps=timestamps)
+# Function to create charts
+def create_charts(vehicle_id):
+    data = load_data()
+    vehicle_data = [d for d in data if d['vehicle_id'] == vehicle_id]
+    timestamps = [d['timestamp'] for d in vehicle_data]
+    temp_acqua = [d['temp_acqua'] for d in vehicle_data]
+    pressione_olio = [d['pressione_olio'] for d in vehicle_data]
+    voltaggio_batteria = [d['voltaggio_batteria'] for d in vehicle_data]
+    contaore_motore = [d['contaore_motore'] for d in vehicle_data]
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(timestamps, temp_acqua, label='Temperatura Acqua')
+    plt.xlabel('Timestamp')
+    plt.ylabel('Temperatura Acqua')
+    plt.title('Temperatura Acqua nel tempo')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig('static/temp_acqua_chart.png')
+    plt.close()
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(timestamps, pressione_olio, label='Pressione Olio')
+    plt.xlabel('Timestamp')
+    plt.ylabel('Pressione Olio')
+    plt.title('Pressione Olio nel tempo')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig('static/pressione_olio_chart.png')
+    plt.close()
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(timestamps, voltaggio_batteria, label='Voltaggio Batteria')
+    plt.xlabel('Timestamp')
+    plt.ylabel('Voltaggio Batteria')
+    plt.title('Voltaggio Batteria nel tempo')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig('static/voltaggio_batteria_chart.png')
+    plt.close()
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(timestamps, contaore_motore, label='Contaore Motore')
+    plt.xlabel('Timestamp')
+    plt.ylabel('Contaore Motore')
+    plt.title('Contaore Motore nel tempo')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig('static/contaore_motore_chart.png')
+    plt.close()
+
+# Vehicle history page
+@app.route('/vehicle_history/<vehicle_id>')
+def vehicle_history(vehicle_id):
+    create_charts(vehicle_id)
+    data = load_data()
+    vehicle_data = [d for d in data if d['vehicle_id'] == vehicle_id]
+    return render_template('vehicle_history.html', vehicle_id=vehicle_id, vehicle_data=vehicle_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
