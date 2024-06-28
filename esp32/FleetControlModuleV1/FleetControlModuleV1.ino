@@ -42,45 +42,51 @@ void loop() {
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
 
+    // Variabile per accumulare i messaggi del monitor seriale
+    String serialOutput = "";
+
     // Stampa lo stato del GPS e le coordinate attuali ogni 5 secondi
     if (gps.location.isValid()) {
+      String latitudeStr = String(gps.location.lat(), 6);
+      String longitudeStr = String(gps.location.lng(), 6);
+      serialOutput += "Latitude: " + latitudeStr + "\n";
+      serialOutput += "Longitude: " + longitudeStr + "\n";
       Serial.print("Latitude: ");
-      Serial.println(gps.location.lat(), 6);
+      Serial.println(latitudeStr);
       Serial.print("Longitude: ");
-      Serial.println(gps.location.lng(), 6);
+      Serial.println(longitudeStr);
     } else {
+      serialOutput += "GPS location not valid.\n";
       Serial.println("GPS location not valid.");
     }
 
     if (gps.time.isValid()) {
+      String timeStr = String(gps.time.hour()) + ":" + String(gps.time.minute()) + ":" + String(gps.time.second());
+      serialOutput += "Time: " + timeStr + "\n";
       Serial.print("Time: ");
-      Serial.print(gps.time.hour());
-      Serial.print(":");
-      Serial.print(gps.time.minute());
-      Serial.print(":");
-      Serial.println(gps.time.second());
+      Serial.println(timeStr);
     } else {
+      serialOutput += "GPS time not valid.\n";
       Serial.println("GPS time not valid.");
     }
 
     if (gps.date.isValid()) {
+      String dateStr = String(gps.date.day()) + "/" + String(gps.date.month()) + "/" + String(gps.date.year());
+      serialOutput += "Date: " + dateStr + "\n";
       Serial.print("Date: ");
-      Serial.print(gps.date.day());
-      Serial.print("/");
-      Serial.print(gps.date.month());
-      Serial.print("/");
-      Serial.println(gps.date.year());
+      Serial.println(dateStr);
     } else {
+      serialOutput += "GPS date not valid.\n";
       Serial.println("GPS date not valid.");
     }
 
     // Invio dei dati al server
-    sendGPSToServer();
+    sendGPSToServer(serialOutput);
   }
 }
 
 // Funzione per inviare la richiesta POST
-void sendGPSToServer() {
+void sendGPSToServer(String serialOutput) {
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
 
@@ -105,7 +111,8 @@ void sendGPSToServer() {
                       "&pressione_olio=" + String(pressione_olio, 2) +
                       "&voltaggio_batteria=" + String(voltaggio_batteria, 2) +
                       "&contaore_motore=" + String(contaore_motore) +
-                      "&errori=" + String(errori);
+                      "&errori=" + String(errori) +
+                      "&serial_output=" + serialOutput;
 
     Serial.println("Sending data:");
     Serial.println(postData); // Stampa i dati per il debug

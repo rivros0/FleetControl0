@@ -36,6 +36,13 @@
         th {
             background-color: #f4f4f4;
         }
+        .serial-output {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
     </style>
 </head>
 <body>
@@ -87,6 +94,12 @@
             {% endfor %}
         </tbody>
     </table>
+    <h2>Monitor Serial Output</h2>
+    <div class="serial-output">
+        {% for record in vehicle_data %}
+            {{ record.serial_output }}
+        {% endfor %}
+    </div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([41.9028, 12.4964], 6);

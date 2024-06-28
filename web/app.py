@@ -67,6 +67,7 @@ def update_location():
     voltaggio_batteria = float(data.get('voltaggio_batteria', 0))
     contaore_motore = float(data.get('contaore_motore', 0))
     errori = data.get('errori', 0)
+    serial_output = data.get('serial_output', '')
 
     new_data = {
         'vehicle_id': vehicle_id,
@@ -77,24 +78,13 @@ def update_location():
         'pressione_olio': pressione_olio,
         'voltaggio_batteria': voltaggio_batteria,
         'contaore_motore': contaore_motore,
-        'errori': errori
+        'errori': errori,
+        'serial_output': serial_output
     }
 
     data = load_data()
     data.append(new_data)
     save_data(data)
-
-    # Update error data
-    error_data = load_error_data()
-    if errori not in error_data:
-        error_data[errori] = {
-            'category': 'Generic Error',
-            'name': 'Unknown Error',
-            'description': 'An unknown error has occurred.',
-            'timestamps': []
-        }
-    error_data[errori]['timestamps'].append(timestamp)
-    save_error_data(error_data)
 
     return jsonify({'message': 'Position Updated'}), 200
 
