@@ -89,128 +89,13 @@
     </table>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        // Inizializza la mappa
         var map = L.map('map').setView([41.9028, 12.4964], 6);
 
-        // Aggiungi i tile di OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Dati dei veicoli
         var vehicle_data = {{ vehicle_data | tojson }};
-        
-        // Aggiungi i marker per ciascun record
-        vehicle_data.forEach(record => {
-            L.marker([record.latitude, record.longitude]).addTo(map)
-                .bindPopup(`<b>${record.timestamp}</b><br>Lat: ${record.latitude}<br>Lng: ${record.longitude}`);
-        });
-    </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle History</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        #map {
-            height: 60vh;
-            width: 100%;
-        }
-        .chart-container {
-            margin-top: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-        }
-        .chart {
-            width: 48%;
-            margin-bottom: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-    </style>
-</head>
-<body>
-    <h1>Storico Veicolo {{ vehicle_id }}</h1>
-    <div id="map"></div>
-    <div class="chart-container">
-        <div class="chart">
-            <h2>Temperatura Acqua</h2>
-            <img src="{{ url_for('static', filename='temp_acqua_chart.png') }}" alt="Grafico Temperatura Acqua">
-        </div>
-        <div class="chart">
-            <h2>Pressione Olio</h2>
-            <img src="{{ url_for('static', filename='pressione_olio_chart.png') }}" alt="Grafico Pressione Olio">
-        </div>
-        <div class="chart">
-            <h2>Voltaggio Batteria</h2>
-            <img src="{{ url_for('static', filename='voltaggio_batteria_chart.png') }}" alt="Grafico Voltaggio Batteria">
-        </div>
-        <div class="chart">
-            <h2>Contaore Motore</h2>
-            <img src="{{ url_for('static', filename='contaore_motore_chart.png') }}" alt="Grafico Contaore Motore">
-        </div>
-    </div>
-    <table>
-        <thead>
-            <tr>
-                <th>Timestamp</th>
-                <th>Latitudine</th>
-                <th>Longitudine</th>
-                <th>Temperatura Acqua</th>
-                <th>Pressione Olio</th>
-                <th>Voltaggio Batteria</th>
-                <th>Contaore Motore</th>
-                <th>Errori</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for record in vehicle_data %}
-            <tr>
-                <td>{{ record.timestamp }}</td>
-                <td>{{ record.latitude }}</td>
-                <td>{{ record.longitude }}</td>
-                <td>{{ record.temp_acqua }}</td>
-                <td>{{ record.pressione_olio }}</td>
-                <td>{{ record.voltaggio_batteria }}</td>
-                <td>{{ record.contaore_motore }}</td>
-                <td>{{ record.errori }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script>
-        // Inizializza la mappa
-        var map = L.map('map').setView([41.9028, 12.4964], 6);
-
-        // Aggiungi i tile di OpenStreetMap
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        // Dati dei veicoli
-        var vehicle_data = {{ vehicle_data | tojson }};
-        
-        // Aggiungi i marker per ciascun record
         vehicle_data.forEach(record => {
             L.marker([record.latitude, record.longitude]).addTo(map)
                 .bindPopup(`<b>${record.timestamp}</b><br>Lat: ${record.latitude}<br>Lng: ${record.longitude}`);
